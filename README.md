@@ -1,2 +1,2 @@
-# mini-block-chain
-最小可行性区块链
+# Nebular Chain
+群星链（总得有个响亮的名字才行）

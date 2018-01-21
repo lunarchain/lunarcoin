@@ -1,5 +1,5 @@
 buildscript {
-    ext.kotlin_version = "1.1.4"
+    ext.kotlin_version = "1.2.10"
 
     repositories {
         mavenCentral()
@@ -27,11 +27,11 @@ allprojects {
     }
 }
 
-mainClassName = "mbc.MiniBlockChainKt"
+mainClassName = "nebular.NebularChainKt"
 
 jar {
     manifest {
-        attributes 'Main-Class': 'mbc.MiniBlockChainKt'
+        attributes 'Main-Class': 'nebular.NebularChainKt'
     }
 
     // This line of code recursively collects and copies all of a project's files
