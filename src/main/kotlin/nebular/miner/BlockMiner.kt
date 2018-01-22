@@ -72,7 +72,7 @@ object BlockMiner {
       val totalDifficulty = block.totalDifficulty + BigInteger.valueOf(difficulty.toLong())
 
       val newBlock = Block(block.version, block.height, block.parentHash, block.coinBase,
-          DateTime(), difficulty, nonce, totalDifficulty, block.stateRoot, block.trxTrieRoot, block.transactions)
+          block.time, difficulty, nonce, totalDifficulty, block.stateRoot, block.trxTrieRoot, block.transactions)
       val result = MineResult(true, difficulty, nonce, newBlock)
 
       working = false

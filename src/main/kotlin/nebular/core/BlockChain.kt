@@ -117,6 +117,7 @@ class BlockChain(val config: BlockChainConfig) {
   fun importBlock(block: Block): ImportResult {
     // Validate Block
     if (!block.isValid) {
+      logger.debug("Invalid block: $block, will not do import")
       return ImportResult.INVALID_BLOCK
     }
 
