@@ -5,6 +5,7 @@ import com.typesafe.config.ConfigFactory
 import nebular.core.Block
 import nebular.util.CryptoUtil
 import org.joda.time.DateTime
+import org.joda.time.DateTimeZone
 import org.slf4j.LoggerFactory
 import org.spongycastle.util.encoders.Hex
 import java.io.*
@@ -199,7 +200,7 @@ class BlockChainConfig {
   fun getGenesisBlock(): Block {
     val genesisBlock = Block(1, 0, ByteArray(0),
         Hex.decode("1234567890123456789012345678901234567890"),
-        DateTime(2017, 2, 1, 0, 0), 0, 0,
+        DateTime(2017, 2, 1, 0, 0, DateTimeZone.UTC), 0, 0,
         BigInteger.ZERO, CryptoUtil.merkleRoot(emptyList()), CryptoUtil.merkleRoot(emptyList()), emptyList())
     return genesisBlock
   }
