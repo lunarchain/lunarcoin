@@ -10,8 +10,10 @@ import java.security.PublicKey
  * 账户地址(address)可以由公钥运算推导，比特币和以太坊均采用了类似机制。
  * 账户余额(balance)通常会保存在文件或数据库内。
  */
-open class Account(val publicKey: PublicKey) {
+class AccountWithKey(publicKey: PublicKey, val privateKey: PrivateKey, var index: Int = 0,
+    val password: String = "") : Account(publicKey) {
 
-  val address: ByteArray
-    get() = CryptoUtil.generateAddress(publicKey)
+  override fun toString(): String {
+    return "Account pubKey:$publicKey privKey:$privateKey $index"
+  }
 }

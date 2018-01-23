@@ -64,7 +64,7 @@ class BlockChainTest {
   @Test
   fun applyTransactionTest() {
     // 初始化Alice账户
-    val kp1 = generateKeyPair() ?: return
+    val kp1 = generateKeyPair()
     val alice = Account(kp1.public)
 
     // 初始化Bob账户
@@ -439,11 +439,4 @@ class BlockChainTest {
     }
   }
 
-  @Test
-  fun initConfigTest() {
-    val nebular = NebularChain(config)
-    nebular.init()
-
-    assertNotNull(config.getNodeId())
-  }
 }

@@ -6,6 +6,7 @@ import nebular.miner.BlockMiner
 import nebular.miner.MineResult
 import nebular.network.Peer
 import nebular.network.client.PeerClient
+import nebular.util.CryptoUtil
 import org.slf4j.LoggerFactory
 import java.net.URI
 
@@ -239,7 +240,37 @@ class BlockChainManager(val blockChain: BlockChain) {
     }
   }
 
+  /**
+   * 新建Account（包含公私钥对）。
+   */
+  fun newAccount(password: String): AccountWithKey? {
+    val keyPair = CryptoUtil.generateKeyPair()
+    if (keyPair.public != null && keyPair.private != null) {
+      val account = AccountWithKey(keyPair.public, keyPair.private)
+      val index = blockChain.repository.saveAccount(account, password)
+      account.index = index
+      return account
+    } else {
+      return null
+    }
+  }
+
+  /**
+   * 加载Account（包含公私钥对）。
+   */
+  fun getAccount(index: Int, password: String): AccountWithKey? {
+    return blockChain.repository.getAccount(index, password)
+  }
+
+  /**
+   * 加载Account（包含公私钥对）。
+   */
+  fun accountNumber(): Int {
+    return blockChain.repository.accountNumber()
+  }
+
   private fun broadcastBlock(block: Block, skipPeer: Peer) {
     peers.filterNot { it == skipPeer }.forEach { it.sendNewBlock(block) }
   }
+
 }

@@ -1,10 +1,9 @@
 package nebular.serialization
 
-import nebular.core.AccountState
-import nebular.core.Block
-import nebular.core.Transaction
+import nebular.core.*
 import nebular.storage.BlockInfo
 import nebular.util.CodecUtil
+import nebular.util.CryptoUtil
 
 /**
  * 序列化/反序列化接口。
@@ -31,6 +30,27 @@ class AccountStateSerialize : Serializer<AccountState, ByteArray> {
 
   override fun serialize(obj: AccountState): ByteArray {
     return CodecUtil.encodeAccountState(obj)
+  }
+
+}
+
+class AccountSerialize(val password:String) : Serializer<AccountWithKey, ByteArray> {
+  override fun deserialize(s: ByteArray): AccountWithKey? {
+    try {
+      val privateKey = CryptoUtil.decryptPrivateKey(s, password)
+      val publicKey = CryptoUtil.generatePublicKey(privateKey)
+      return if (publicKey != null) {
+        AccountWithKey(publicKey, privateKey)
+      } else {
+        null
+      }
+    } catch (e: Exception) {
+      return null
+    }
+  }
+
+  override fun serialize(obj: AccountWithKey): ByteArray {
+    return CryptoUtil.encryptPrivateKey(obj.privateKey, password)
   }
 
 }

@@ -1,15 +1,15 @@
 package nebular.storage
 
 import nebular.config.BlockChainConfig
-import nebular.core.AccountState
-import nebular.core.Block
-import nebular.core.Transaction
+import nebular.core.*
+import nebular.serialization.AccountSerialize
 import nebular.serialization.BlockInfosSerialize
 import nebular.serialization.BlockSerialize
 import nebular.serialization.TransactionSerialize
 import nebular.trie.PatriciaTrie
 import nebular.util.CodecUtil
 import java.math.BigInteger
+import java.util.*
 
 /**
  * 管理区块链状态的管理类(Account State, Blocks和Transactions)，不同的BlockChainConfig应该使用不同的Repository。
@@ -51,6 +51,11 @@ class Repository {
   private var accountStateDs: PatriciaTrie? = null
 
   /**
+   * Accounts Db.
+   */
+  private var accountDs: DataSource<ByteArray, ByteArray>? = null
+
+  /**
    * Blocks Db.
    */
   private var blockDs: ObjectStore<Block>? = null
@@ -86,6 +91,25 @@ class Repository {
     ds.init()
     accountStateDs = PatriciaTrie(ds)
     return accountStateDs
+  }
+
+  /**
+   * Account的存储类组装。
+   */
+  fun getAccountStore(password: String): ObjectStore<AccountWithKey>? {
+    if (accountDs == null) {
+      val dbName = "account"
+      var ds: DataSource<ByteArray, ByteArray> = MemoryDataSource(dbName)
+      if (config.getDatabaseType().equals(BlockChainConfig.DatabaseType.LEVELDB.name, true)) {
+        ds = LevelDbDataSource(dbName, config.getDatabaseDir())
+      }
+      ds.init()
+      accountDs = ds
+
+      return ObjectStore(ds, AccountSerialize(password))
+    } else {
+      return ObjectStore(accountDs!!, AccountSerialize(password))
+    }
   }
 
   /**
@@ -175,6 +199,26 @@ class Repository {
     val accountState = getOrCreateAccountState(address)
     getAccountStateStore()?.update(address,
         CodecUtil.encodeAccountState(accountState.increaseBalance(amount)))
+  }
+
+  fun saveAccount(account: AccountWithKey, password: String = ""): Int {
+    val ds = getAccountStore(password)
+    val index = ds?.keys()?.size?:0
+    val key = index.toString(10).toByteArray()
+    ds?.put(key, account)
+    return index
+  }
+
+  fun getAccount(index: Int, password: String = ""): AccountWithKey? {
+    val ds = getAccountStore(password)
+    val key = index.toString(10).toByteArray()
+    return ds?.get(key)
+  }
+
+  fun accountNumber(): Int {
+    val ds = getAccountStore("")
+    val keys = ds?.keys()
+    return keys?.size?:0
   }
 
   fun getBlockInfo(hash: ByteArray): BlockInfo? {

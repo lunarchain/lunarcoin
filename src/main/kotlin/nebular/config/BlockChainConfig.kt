@@ -129,20 +129,16 @@ class BlockChainConfig {
         return CryptoUtil.deserializePrivateKey(Hex.decode(key))
       } else {
         val key = CryptoUtil.generateKeyPair()
-        if (key != null) {
-          props.setProperty("nodeIdPrivateKey", Hex.toHexString(key.private.encoded))
-          props.setProperty("nodeId", Hex.toHexString(key.public.encoded))
-          file.parentFile.mkdirs()
-          OutputStreamWriter(FileOutputStream(file), "UTF-8").use({ w ->
-            props.store(w, "Auto generated NodeID, you can set 'peer.privateKey' to replace the auto generated NodeID.")
-          })
-          logger.info("自动生成NodeID: " + props.getProperty("nodeId"))
-          logger.info("NodeID与私钥保存在 " + file)
+        props.setProperty("nodeIdPrivateKey", Hex.toHexString(key.private.encoded))
+        props.setProperty("nodeId", Hex.toHexString(key.public.encoded))
+        file.parentFile.mkdirs()
+        OutputStreamWriter(FileOutputStream(file), "UTF-8").use({ w ->
+          props.store(w, "Auto generated NodeID, you can set 'peer.privateKey' to replace the auto generated NodeID.")
+        })
+        logger.info("自动生成NodeID: " + props.getProperty("nodeId"))
+        logger.info("NodeID与私钥保存在 " + file)
 
-          return key.private
-        } else {
-          throw Exception("NodeId or PrivateKey can not be empty.")
-        }
+        return key.private
       }
     }
   }

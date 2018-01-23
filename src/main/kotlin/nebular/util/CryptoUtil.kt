@@ -17,6 +17,11 @@ import java.security.interfaces.ECPublicKey
 import java.security.spec.ECGenParameterSpec
 import java.security.spec.PKCS8EncodedKeySpec
 import java.security.spec.X509EncodedKeySpec
+import javax.crypto.Cipher
+import javax.crypto.EncryptedPrivateKeyInfo
+import javax.crypto.SecretKeyFactory
+import javax.crypto.spec.PBEKeySpec
+import javax.crypto.spec.PBEParameterSpec
 
 
 /**
@@ -45,7 +50,7 @@ class CryptoUtil {
     /**
      * 生成公私钥对，使用以太坊的ECDSA算法(secp256k1)。
      */
-    fun generateKeyPair(): KeyPair? {
+    fun generateKeyPair(): KeyPair {
       val gen = KeyPairGenerator.getInstance("EC", "SC")
       gen.initialize(ECGenParameterSpec("secp256k1"), SecureRandom())
       val keyPair = gen.generateKeyPair()
@@ -157,20 +162,76 @@ class CryptoUtil {
 
       val exp = difficulty shr 24
       val mant = difficulty and 0xffffff
-      val target = BigInteger.valueOf(mant.toLong()).multiply(BigInteger.valueOf(2).pow(8 * (exp - 3)))
+      val target = BigInteger.valueOf(mant.toLong()).multiply(
+          BigInteger.valueOf(2).pow(8 * (exp - 3)))
       val targetStr = "%064x".format(target)
 
       headerBuffer.put(ByteBuffer.allocate(4).putInt(ver).array()) // version
       headerBuffer.put(parentHash) // parentHash
       headerBuffer.put(merkleRoot) // trxTrieRoot
       headerBuffer.put(ByteBuffer.allocate(4).putInt(time).array()) // time
-      headerBuffer.put(ByteBuffer.allocate(4).putInt(difficulty).array()) // difficulty(current difficulty)
+      headerBuffer.put(
+          ByteBuffer.allocate(4).putInt(difficulty).array()) // difficulty(current difficulty)
       headerBuffer.put(ByteBuffer.allocate(4).putInt(nonce).array()) // nonce
 
       val header = headerBuffer.array()
       val hit = Hex.toHexString(CryptoUtil.sha256(CryptoUtil.sha256(header)))
 
       return hit < targetStr
+    }
+
+    /**
+     * Encrypt private key in PKCS8 form with the password.
+     */
+    fun encryptPrivateKey(privateKey: PrivateKey, password: String): ByteArray {
+      // We must use a PasswordBasedEncryption algorithm in order to encrypt the private key, you may use any common algorithm supported by openssl, you can check them in the openssl documentation http://www.openssl.org/docs/apps/pkcs8.html
+      val MYPBEALG = "PBEWithSHA1AndDESede"
+
+      val count = 20// hash iteration count
+      val random = SecureRandom()
+      val salt = ByteArray(8)
+      random.nextBytes(salt)
+
+      // Create PBE parameter set
+      val pbeParamSpec = PBEParameterSpec(salt, count)
+      val pbeKeySpec = PBEKeySpec(password.toCharArray())
+      val keyFac = SecretKeyFactory.getInstance(MYPBEALG)
+      val pbeKey = keyFac.generateSecret(pbeKeySpec)
+
+      val pbeCipher = Cipher.getInstance(MYPBEALG)
+
+      // Initialize PBE Cipher with key and parameters
+      pbeCipher.init(Cipher.ENCRYPT_MODE, pbeKey, pbeParamSpec)
+
+      // Encrypt the encoded Private Key with the PBE key
+      val ciphertext = pbeCipher.doFinal(privateKey.encoded)
+
+      // Now construct  PKCS #8 EncryptedPrivateKeyInfo object
+      val algparms = AlgorithmParameters.getInstance(MYPBEALG)
+      algparms.init(pbeParamSpec)
+      val encinfo = EncryptedPrivateKeyInfo(algparms, ciphertext)
+
+      // and here we have it! a DER encoded PKCS#8 encrypted key!
+      val encryptedPkcs8 = encinfo.getEncoded()
+
+      return encryptedPkcs8
+    }
+
+    /**
+     * Decrypt the encrypted PKCS8 private key with the password.
+     */
+    fun decryptPrivateKey(encryptedPkcs8: ByteArray, password: String): PrivateKey {
+      val encryptPKInfo = EncryptedPrivateKeyInfo(encryptedPkcs8)
+
+      val cipher = Cipher.getInstance(encryptPKInfo.algName)
+      val pbeKeySpec = PBEKeySpec(password.toCharArray())
+      val secFac = SecretKeyFactory.getInstance(encryptPKInfo.algName)
+      val pbeKey = secFac.generateSecret(pbeKeySpec)
+      val algParams = encryptPKInfo.algParameters
+      cipher.init(Cipher.DECRYPT_MODE, pbeKey, algParams)
+      val pkcs8KeySpec = encryptPKInfo.getKeySpec(cipher)
+      val kf = KeyFactory.getInstance("EC", "SC")
+      return kf.generatePrivate(pkcs8KeySpec)
     }
   }
 
