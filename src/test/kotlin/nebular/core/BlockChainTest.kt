@@ -441,8 +441,8 @@ class BlockChainTest {
 
   @Test
   fun initConfigTest() {
-    val mbc = NebularChain(config)
-    mbc.init()
+    val nebular = NebularChain(config)
+    nebular.init()
 
     assertNotNull(config.getNodeId())
   }

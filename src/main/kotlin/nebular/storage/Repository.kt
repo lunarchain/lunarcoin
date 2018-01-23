@@ -48,7 +48,7 @@ class Repository {
   /**
    * Account state Db.
    */
-  private var accountDs: PatriciaTrie? = null
+  private var accountStateDs: PatriciaTrie? = null
 
   /**
    * Blocks Db.
@@ -76,16 +76,16 @@ class Repository {
    * Account State的存储类组装。
    */
   fun getAccountStateStore(): PatriciaTrie? {
-    if (accountDs != null) return accountDs
+    if (accountStateDs != null) return accountStateDs
 
-    val dbName = "accounts"
+    val dbName = "accountState"
     var ds: DataSource<ByteArray, ByteArray> = MemoryDataSource(dbName)
     if (config.getDatabaseType().equals(BlockChainConfig.DatabaseType.LEVELDB.name, true)) {
       ds = LevelDbDataSource(dbName, config.getDatabaseDir())
     }
     ds.init()
-    accountDs = PatriciaTrie(ds)
-    return accountDs
+    accountStateDs = PatriciaTrie(ds)
+    return accountStateDs
   }
 
   /**
@@ -94,7 +94,7 @@ class Repository {
   fun getBlockStore(): ObjectStore<Block>? {
     if (blockDs != null) return blockDs
 
-    val dbName = "blocks"
+    val dbName = "block"
     var ds: DataSource<ByteArray, ByteArray> = MemoryDataSource(dbName)
     if (config.getDatabaseType().equals(BlockChainConfig.DatabaseType.LEVELDB.name, true)) {
       ds = LevelDbDataSource(dbName, config.getDatabaseDir())
@@ -110,7 +110,7 @@ class Repository {
   fun getTransactionStore(): ObjectStore<Transaction>? {
     if (transactionDs != null) return transactionDs
 
-    val dbName = "transactions"
+    val dbName = "transaction"
     var ds: DataSource<ByteArray, ByteArray> = MemoryDataSource(dbName)
     if (config.getDatabaseType().equals(BlockChainConfig.DatabaseType.LEVELDB.name, true)) {
       ds = LevelDbDataSource(dbName, config.getDatabaseDir())

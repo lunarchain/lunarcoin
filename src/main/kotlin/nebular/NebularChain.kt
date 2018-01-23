@@ -30,16 +30,16 @@ fun main(args: Array<String>) {
     return
   }
 
-  var mbc: NebularChain
+  var chain: NebularChain
   val configFilePath = cmd.getOptionValue("config") ?: "conf/application.conf"
   val configFile = File(configFilePath)
   if (!configFile.exists()) {
-    mbc = NebularChain()
+    chain = NebularChain()
   } else {
-    mbc = NebularChain(BlockChainConfig(configFile))
+    chain = NebularChain(BlockChainConfig(configFile))
   }
-  mbc.init()
-  mbc.start()
+  chain.init()
+  chain.start()
   println("NebularChain started.")
 }
 
