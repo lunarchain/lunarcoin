@@ -4,15 +4,12 @@ import nebular.config.BlockChainConfig
 import nebular.core.BlockChain
 import nebular.core.BlockChainManager
 import nebular.network.server.PeerServer
-import nebular.repl.Command
-import nebular.util.CryptoUtil
+import nebular.repl.NebularShell
 import org.apache.commons.cli.*
-import org.jline.reader.LineReaderBuilder
-import org.jline.terminal.TerminalBuilder
-import org.spongycastle.util.encoders.Hex
+import org.springframework.boot.SpringApplication
 import java.io.File
-import java.util.logging.Level
-import java.util.logging.Logger
+
+lateinit var CHAIN_MANAGER: BlockChainManager
 
 fun main(args: Array<String>) {
   println("NebularChain starting ......")
@@ -44,77 +41,18 @@ fun main(args: Array<String>) {
   val configFile = File(configFilePath)
   val blockChain = if (configFile.exists()) BlockChain(BlockChainConfig.default()) else BlockChain(
       BlockChainConfig(configFile))
-  val manager = BlockChainManager(blockChain)
-  val chain = NebularChain()
-  chain.manager = manager
-  chain.init()
-  NebularChain.instance = chain
+  CHAIN_MANAGER = BlockChainManager(blockChain)
 
   val terminal = cmd.hasOption('t')
   if (terminal) {
-    startTerminal(manager)
+    //startTerminal(manager)
+    val context = SpringApplication.run(NebularShell::class.java)
   } else {
-    chain.start()
-    println("NebularChain started.")
-  }
-}
-
-fun startTerminal(manager: BlockChainManager) {
-  // Suppress log messages from JLine.
-  val logger = Logger.getLogger("org.jline");
-  logger.level = Level.SEVERE
-
-  val terminal = TerminalBuilder.terminal()
-  terminal.echo(false)
-  val lineReader = LineReaderBuilder.builder()
-      .terminal(terminal)
-      .build()
-  terminalloop@ while (true) {
-    val input = lineReader.readLine("> ")
-    val command = Command(input)
-    when (command.name) {
-      "quit" -> break@terminalloop
-      "exit" -> break@terminalloop
-      "account.new" -> {
-        val password = if (command.args.size > 0) command.getStringArgument(0) else ""
-        val account = manager.newAccount(password)
-        if (account != null) {
-          println("Account[${account.index}]:${Hex.toHexString(CryptoUtil.generateAddress(account.publicKey))} created.")
-        } else {
-          println("Failed to create new account.")
-        }
-      }
-      "account.load" -> {
-        val index = if (command.args.size > 0) command.getIntArgument(0) else 0
-        val password = if (command.args.size > 1) command.getStringArgument(1) else ""
-
-        val account = manager.getAccount(index, password)
-        if (account != null) {
-          println("Account[${account.index}]:${Hex.toHexString(CryptoUtil.generateAddress(account.publicKey))} loaded.")
-        } else {
-          println("Failed to load account.")
-        }
-      }
-    }
-  }
-}
-
-class NebularChain {
-  companion object {
-    var instance: NebularChain? = null
-  }
-
-  lateinit var manager: BlockChainManager
-  lateinit var server: PeerServer
-
-  fun init() {
-  }
-
-  fun start() {
-    server = PeerServer(manager)
+    var server: PeerServer
+    server = PeerServer(CHAIN_MANAGER)
     server.start()
 
-    manager.startPeerDiscovery()
-//        manager.startMining()
+    CHAIN_MANAGER.startPeerDiscovery()
+    println("NebularChain started.")
   }
 }

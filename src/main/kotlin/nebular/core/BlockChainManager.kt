@@ -103,10 +103,11 @@ class BlockChainManager(val blockChain: BlockChain) {
   fun stopMining() {
 
     mining = false
+    BlockMiner.stop()
   }
 
   fun mineBlock() {
-    logger.debug("Mine block.")
+    logger.debug("mineBlock.")
     miningBlock = blockChain.generateNewBlock(pendingTransactions)
     Flowable.fromCallable({ BlockMiner.mine(miningBlock!!) })
         .subscribeOn(Schedulers.computation())
@@ -117,6 +118,8 @@ class BlockChainManager(val blockChain: BlockChain) {
           }
           if (mining) { // continue mining.
             mineBlock()
+          } else {
+            logger.info("Miner stopped.")
           }
         })
   }
@@ -171,7 +174,7 @@ class BlockChainManager(val blockChain: BlockChain) {
    */
   private fun processMinedBlock(result: MineResult) {
     val block = result.block
-    logger.debug("Mined block: $block")
+    logger.debug("Process mined block: $block")
 
     if (blockChain.importBlock(block) == BlockChain.ImportResult.BEST_BLOCK) {
       val bestBlock = blockChain.getBestBlock()

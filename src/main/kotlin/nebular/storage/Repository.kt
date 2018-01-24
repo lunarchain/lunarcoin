@@ -212,7 +212,9 @@ class Repository {
   fun getAccount(index: Int, password: String = ""): AccountWithKey? {
     val ds = getAccountStore(password)
     val key = index.toString(10).toByteArray()
-    return ds?.get(key)
+    val account = ds?.get(key)
+    account?.index = index
+    return account
   }
 
   fun accountNumber(): Int {

@@ -24,7 +24,7 @@ object BlockMiner {
    * 挖矿，返回nonce值和target值。目前采用阻塞模型，后期修改为更合理的异步模型。
    */
   fun mine(block: Block): MineResult {
-    logger.debug("Miner is working ...")
+    logger.info("Miner is working ...")
 
     working = true
 
@@ -67,7 +67,7 @@ object BlockMiner {
 
       val interval = (endTime - startTime) / 1000
 
-      logger.debug("Mining block finished in $interval seconds.")
+      logger.info("Mined block $block in $interval seconds.")
 
       val totalDifficulty = block.totalDifficulty + BigInteger.valueOf(difficulty.toLong())
 
@@ -86,7 +86,11 @@ object BlockMiner {
   }
 
   fun skip() {
-    logger.debug("Skip mining current block...")
+    logger.info("Skip mining current block...")
+    working = false
+  }
+
+  fun stop() {
     working = false
   }
 }

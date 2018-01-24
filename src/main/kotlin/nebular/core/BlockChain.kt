@@ -238,9 +238,15 @@ class BlockChain(val config: BlockChainConfig) {
   }
 
   private fun isNextBlock(block: Block): Boolean {
-    println("Best block Hash:" + Hex.toHexString(bestBlock.hash))
-    println("Parent block Hash:" + Hex.toHexString(block.parentHash))
-    return Arrays.equals(bestBlock.hash, block.parentHash)
+    val isNext = Arrays.equals(bestBlock.hash, block.parentHash)
+    if (isNext) {
+      logger.debug("Parent of block is same as best block.")
+    } else {
+      logger.debug("Parent of block is DIFFERENT FROM best block.")
+      logger.debug("Best block Hash:" + Hex.toHexString(bestBlock.hash))
+      logger.debug("Parent block Hash:" + Hex.toHexString(block.parentHash))
+    }
+    return isNext
   }
 
 }
