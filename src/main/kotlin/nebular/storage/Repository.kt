@@ -140,7 +140,7 @@ class Repository {
       ds = LevelDbDataSource(dbName, config.getDatabaseDir())
     }
     ds.init()
-    transactionDs = ObjectStore(ds, TransactionSerialize())
+    transactionDs = ObjectStore<Transaction>(ds, TransactionSerialize())
     return transactionDs
   }
 
@@ -251,6 +251,18 @@ class Repository {
 
   fun updateBestBlock(block: Block) {
     getBestBlockStore()?.put(BEST_BLOCK_KEY, block)
+  }
+
+  fun putTransaction(trx: Transaction) {
+    getTransactionStore()?.put(trx.hash(), trx)
+  }
+
+  fun close() {
+    accountDs?.close()
+    accountStateDs?.close()
+    transactionDs?.close()
+    blockDs?.close()
+    blockIndexDs?.close()
   }
 
   /**

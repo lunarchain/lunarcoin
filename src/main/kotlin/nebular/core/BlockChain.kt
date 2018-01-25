@@ -2,9 +2,10 @@ package nebular.core
 
 import nebular.config.BlockChainConfig
 import nebular.storage.BlockInfo
+import nebular.storage.MemoryDataSource
 import nebular.storage.Repository
+import nebular.trie.PatriciaTrie
 import nebular.util.CodecUtil
-import nebular.util.CryptoUtil
 import org.joda.time.DateTime
 import org.slf4j.LoggerFactory
 import org.spongycastle.util.encoders.Hex
@@ -67,9 +68,19 @@ class BlockChain(val config: BlockChainConfig) {
 
     val block = Block(config.getPeerVersion(), parent.height + 1, parent.hash,
         config.getMinerCoinbase(), DateTime(), 0, 0, parent.totalDifficulty,
-        CryptoUtil.merkleRoot(emptyList()), CryptoUtil.merkleRoot(transactions),
+        ByteArray(0), calculateTrxTrieRoot(transactionsToInclude),
         transactionsToInclude)
     return block
+  }
+
+  fun calculateTrxTrieRoot(transactions: List<Transaction>): ByteArray {
+    val trie = PatriciaTrie(MemoryDataSource("trxTrieRoot"))
+    if (transactions.size > 0) {
+      for (i in 0..transactions.size - 1) {
+        trie.update(i.toString().toByteArray(), CodecUtil.encodeTransaction(transactions[i]))
+      }
+    }
+    return trie.rootHash
   }
 
   /**
@@ -87,9 +98,11 @@ class BlockChain(val config: BlockChainConfig) {
    */
   fun processBlock(block: Block): Block {
     transactionExecutor.executeCoinbaseTransaction(block.transactions[0])
+    repository.putTransaction(block.transactions[0])
 
     for (trx in block.transactions.drop(1)) {
       transactionExecutor.execute(trx)
+      repository.putTransaction(trx)
     }
 
     return Block(block.version, block.height, block.parentHash, block.coinBase,
@@ -123,8 +136,8 @@ class BlockChain(val config: BlockChainConfig) {
     }
 
     if (isNextBlock(block)) {
-      logger.debug("Push block $block to end of chain.")
       val blockToSave = processBlock(block)
+      logger.debug("Push block $blockToSave to end of chain.")
 
       repository.saveBlock(blockToSave)
 

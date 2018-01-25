@@ -3,6 +3,7 @@ package nebular.core
 import nebular.util.CodecUtil
 import nebular.util.CryptoUtil
 import org.joda.time.DateTime
+import org.spongycastle.util.encoders.Hex
 import java.math.BigInteger
 
 /**
@@ -33,6 +34,6 @@ class Block(val version: Int, val height: Long, val parentHash: ByteArray,
   }
 
   override fun toString(): String {
-    return "ver:$version h:$height, nonce:$nonce, dt:$difficulty, tt: $totalDifficulty, time:$time"
+    return "h:$height, nonce:$nonce, stateRoot:${Hex.toHexString(stateRoot)} trxTrieRoot: ${Hex.toHexString(trxTrieRoot)} dt:$difficulty, tt: $totalDifficulty, time:$time, ${transactions.size} of transactions."
   }
 }

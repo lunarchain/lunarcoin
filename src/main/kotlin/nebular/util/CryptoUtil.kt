@@ -233,6 +233,12 @@ class CryptoUtil {
       val kf = KeyFactory.getInstance("EC", "SC")
       return kf.generatePrivate(pkcs8KeySpec)
     }
+
+    fun hashTransaction(trx: Transaction): ByteArray {
+      val digest = MessageDigest.getInstance("KECCAK-256", "SC")
+      digest.update(trx.encode())
+      return digest.digest()
+    }
   }
 
 }

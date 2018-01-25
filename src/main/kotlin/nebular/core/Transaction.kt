@@ -38,6 +38,10 @@ class Transaction(val senderAddress: ByteArray, val receiverAddress: ByteArray, 
     return signature
   }
 
+  fun hash(): ByteArray {
+    return CryptoUtil.hashTransaction(this)
+  }
+
   fun encode(): ByteArray {
     return CodecUtil.encodeTransaction(this)
   }
@@ -57,6 +61,6 @@ class Transaction(val senderAddress: ByteArray, val receiverAddress: ByteArray, 
   }
 
   override fun toString(): String {
-    return "${Hex.toHexString(senderAddress)} send $amount to ${Hex.toHexString(receiverAddress)} in $time"
+    return "Transfer $amount from ${Hex.toHexString(senderAddress)} to ${Hex.toHexString(receiverAddress)} in $time"
   }
 }

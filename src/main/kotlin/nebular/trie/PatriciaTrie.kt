@@ -250,13 +250,12 @@ class PatriciaTrie {
 
   val rootHash: ByteArray
     get() {
-      if (rootNode == BLANK_NODE) {
-        return BLANK_ROOT
-      } else {
-        val hash = nodeHash(rootNode)
-        return hash
-      }
+      return nodeHash(rootNode)
     }
+
+  fun close() {
+    db.close()
+  }
 
   fun changeRoot(hash: ByteArray) {
     if (Arrays.equals(hash, BLANK_ROOT)) {
@@ -593,7 +592,7 @@ class PatriciaTrie {
 
     when (node.type) {
       NodeType.NODE_TYPE_BLANK -> {
-        return EMPTY_VALUE
+        vec.add(CodecUtil.asn1Encode(ByteArray(0)))
       }
       NodeType.NODE_TYPE_LEAF -> {
         vec.add(CodecUtil.asn1Encode(node.key))

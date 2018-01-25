@@ -7,7 +7,6 @@ import org.joda.time.DateTime
 import org.spongycastle.util.encoders.Hex
 import org.springframework.shell.standard.ShellComponent
 import org.springframework.shell.standard.ShellMethod
-import java.math.BigDecimal
 import java.math.BigInteger
 
 @ShellComponent
@@ -55,7 +54,7 @@ class ShellCommands {
     return "Miner stopping ..."
   }
 
-  @ShellMethod("Update coinbase address.", key= ["coinbase.update"])
+  @ShellMethod("Update coinbase address.", key= ["coinbase"])
   fun coinbaseUpdate(coinbase: String): String {
     CHAIN_MANAGER.blockChain.config.setMinerCoinbase(Hex.decode(coinbase))
     return "Coinbase address updated."

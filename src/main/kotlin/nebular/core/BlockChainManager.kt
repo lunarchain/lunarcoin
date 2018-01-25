@@ -120,6 +120,7 @@ class BlockChainManager(val blockChain: BlockChain) {
         .subscribe({
           if (it.success) {
             processMinedBlock(it)
+            pendingTransactions.clear()
           }
           if (mining) { // continue mining.
             mineBlock()
@@ -285,6 +286,13 @@ class BlockChainManager(val blockChain: BlockChain) {
    */
   fun accountNumber(): Int {
     return blockChain.repository.accountNumber()
+  }
+
+  fun stop() {
+    stopMining()
+    stopSync()
+    stopPeerDiscovery()
+    blockChain.repository.close()
   }
 
   private fun broadcastBlock(block: Block, skipPeer: Peer) {
