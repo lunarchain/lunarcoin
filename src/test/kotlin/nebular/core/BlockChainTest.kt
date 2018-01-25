@@ -1,6 +1,5 @@
 package nebular.core
 
-import nebular.NebularChain
 import nebular.config.BlockChainConfig
 import nebular.miner.BlockMiner
 import nebular.storage.Repository

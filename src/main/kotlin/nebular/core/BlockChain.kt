@@ -42,6 +42,7 @@ class BlockChain(val config: BlockChainConfig) {
    */
   private fun loadBestBlock(): Block {
     bestBlock = repository.getBestBlock() ?: config.getGenesisBlock()
+    repository.getAccountStateStore()?.changeRoot(bestBlock.stateRoot)
     logger.debug("Best block is:" + bestBlock)
     return bestBlock
   }

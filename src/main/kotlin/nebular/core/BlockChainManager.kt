@@ -45,6 +45,11 @@ class BlockChainManager(val blockChain: BlockChain) {
   var synching: Boolean = false
 
   /**
+   * 当前交易用账户。
+   */
+  var currentAccount: AccountWithKey? = null
+
+  /**
    * 将Transaction加入到Pending List。
    */
   fun addPendingTransaction(trx: Transaction) {
@@ -261,9 +266,19 @@ class BlockChainManager(val blockChain: BlockChain) {
   /**
    * 加载Account（包含公私钥对）。
    */
-  fun getAccount(index: Int, password: String): AccountWithKey? {
-    return blockChain.repository.getAccount(index, password)
+  fun unlockAccount(index: Int, password: String): AccountWithKey? {
+    currentAccount = blockChain.repository.getAccount(index, password)
+    return currentAccount
   }
+
+  /**
+   * Lock Account（包含公私钥对）。
+   */
+  fun lockAccount(): Boolean {
+    currentAccount = null
+    return true
+  }
+
 
   /**
    * 加载Account（包含公私钥对）。
