@@ -318,6 +318,8 @@ class PatriciaTrie {
 
     rootNode = updateAndSaveNode(rootNode, binToNibbbles(key), value)
 
+    saveNodeToStorage(rootNode)
+
     //logger.debug("root hash before write to db: ${Hex.toHexString(rootHash)}")
   }
 
