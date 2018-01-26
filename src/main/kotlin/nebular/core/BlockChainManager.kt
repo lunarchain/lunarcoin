@@ -120,7 +120,7 @@ class BlockChainManager(val blockChain: BlockChain) {
         .subscribe({
           if (it.success) {
             processMinedBlock(it)
-            pendingTransactions.clear()
+            pendingTransactions.removeAll(it.block.transactions)
           }
           if (mining) { // continue mining.
             mineBlock()

@@ -61,6 +61,6 @@ class Transaction(val senderAddress: ByteArray, val receiverAddress: ByteArray, 
   }
 
   override fun toString(): String {
-    return "Transfer $amount from ${Hex.toHexString(senderAddress)} to ${Hex.toHexString(receiverAddress)} in $time"
+    return "Trx Hash:${Hex.toHexString(hash())} Amount:$amount From:${Hex.toHexString(senderAddress)} To:${Hex.toHexString(receiverAddress)} in $time"
   }
 }
