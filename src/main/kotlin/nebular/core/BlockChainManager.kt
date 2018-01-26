@@ -2,10 +2,12 @@ package nebular.core
 
 import io.reactivex.Flowable
 import io.reactivex.schedulers.Schedulers
+import nebular.config.DEFAULT_DIFFICULTY
 import nebular.miner.BlockMiner
 import nebular.miner.MineResult
 import nebular.network.Peer
 import nebular.network.client.PeerClient
+import nebular.util.BlockChainUtil
 import nebular.util.CryptoUtil
 import org.slf4j.LoggerFactory
 import java.net.URI
@@ -13,6 +15,14 @@ import java.net.URI
 class BlockChainManager(val blockChain: BlockChain) {
 
   private val logger = LoggerFactory.getLogger(javaClass)
+
+  companion object {
+    lateinit var INSTANCE: BlockChainManager
+  }
+
+  init {
+    INSTANCE = this
+  }
 
   /**
    * 等待加入区块的交易数据。
@@ -297,6 +307,21 @@ class BlockChainManager(val blockChain: BlockChain) {
 
   private fun broadcastBlock(block: Block, skipPeer: Peer) {
     peers.filterNot { it == skipPeer }.forEach { it.sendNewBlock(block) }
+  }
+
+  /**
+   * 计算Block的Difficulty。
+   */
+  fun calculateBlockDifficulty(block: Block): Long {
+    if (block.height == 1L) {
+      return DEFAULT_DIFFICULTY
+    }
+    val parentBlock = BlockChainManager.INSTANCE.blockChain.repository.getBlock(block.parentHash)
+    if (parentBlock != null) {
+      return BlockChainUtil.calculateDifficulty(block.time.millis / 1000,
+          parentBlock.time.millis / 1000, parentBlock.height, parentBlock.difficulty)
+    }
+    return DEFAULT_DIFFICULTY
   }
 
 }

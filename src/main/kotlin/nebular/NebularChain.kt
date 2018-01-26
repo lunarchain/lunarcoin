@@ -9,8 +9,6 @@ import org.apache.commons.cli.*
 import org.springframework.boot.SpringApplication
 import java.io.File
 
-lateinit var CHAIN_MANAGER: BlockChainManager
-
 fun main(args: Array<String>) {
   println("NebularChain starting ......")
   val options = Options()
@@ -41,7 +39,7 @@ fun main(args: Array<String>) {
   val configFile = File(configFilePath)
   val blockChain = if (!configFile.exists()) BlockChain(BlockChainConfig.default()) else BlockChain(
       BlockChainConfig(configFile))
-  CHAIN_MANAGER = BlockChainManager(blockChain)
+  val manager = BlockChainManager(blockChain)
 
   val terminal = cmd.hasOption('t')
   if (terminal) {
@@ -49,10 +47,10 @@ fun main(args: Array<String>) {
     val context = SpringApplication.run(NebularShell::class.java)
   } else {
     var server: PeerServer
-    server = PeerServer(CHAIN_MANAGER)
+    server = PeerServer(manager)
     server.start()
 
-    CHAIN_MANAGER.startPeerDiscovery()
+    manager.startPeerDiscovery()
     println("NebularChain started.")
   }
 }

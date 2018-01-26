@@ -1,5 +1,6 @@
 package nebular.core
 
+import nebular.util.BlockChainUtil
 import nebular.util.CodecUtil
 import nebular.util.CryptoUtil
 import org.joda.time.DateTime
@@ -10,7 +11,7 @@ import java.math.BigInteger
  * 区块(Block)类，包含了区块高度(height)，上一个区块哈希值(parentHash)，旷工账户地址(coinBase)，交易列表(transactions)和时间戳(time)。
  */
 class Block(val version: Int, val height: Long, val parentHash: ByteArray,
-    val coinBase: ByteArray, val time: DateTime, val difficulty: Int,
+    val coinBase: ByteArray, val time: DateTime, val difficulty: Long,
     val nonce: Int, val totalDifficulty: BigInteger, val stateRoot: ByteArray, val trxTrieRoot: ByteArray,
     val transactions: List<Transaction>) {
 
@@ -27,7 +28,7 @@ class Block(val version: Int, val height: Long, val parentHash: ByteArray,
    * 区块内容是否合法
    */
   val isValid: Boolean
-    get() = CryptoUtil.validateBlock(this)
+    get() = BlockChainUtil.validateBlock(this)
 
   fun encode(): ByteArray {
     return CodecUtil.encodeBlock(this)

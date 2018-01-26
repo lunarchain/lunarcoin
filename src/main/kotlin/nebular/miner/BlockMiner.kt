@@ -1,8 +1,10 @@
 package nebular.miner
 
+import nebular.config.DEFAULT_DIFFICULTY
 import nebular.core.Block
+import nebular.core.BlockChainManager
+import nebular.util.BlockChainUtil
 import nebular.util.CryptoUtil
-import org.joda.time.DateTime
 import org.slf4j.LoggerFactory
 import org.spongycastle.util.encoders.Hex
 import java.math.BigInteger
@@ -18,8 +20,6 @@ object BlockMiner {
 
   var working = false
 
-  var currentDifficulty = 0x1d80ffff // 比特币的最小(初始)难度为0x1d00ffff，为测试方便我们降低难度为0x1e00ffff
-
   /**
    * 挖矿，返回nonce值和target值。目前采用阻塞模型，后期修改为更合理的异步模型。
    */
@@ -34,23 +34,25 @@ object BlockMiner {
     val parentHash = block.parentHash
     val merkleRoot = block.trxTrieRoot
     val time = (block.time.millis / 1000).toInt() // Current timestamp as seconds since 1970-01-01T00:00 UTC
-    val difficulty = currentDifficulty // difficulty
+    val difficulty = BlockChainManager.INSTANCE.calculateBlockDifficulty(block) // difficulty
 
     // 挖矿难度的算法：https://en.bitcoin.it/wiki/Difficulty
-    val exp = difficulty shr 24
+    val exp = (difficulty shr 24).toInt()
     val mant = difficulty and 0xffffff
-    val target = BigInteger.valueOf(mant.toLong()).multiply(BigInteger.valueOf(2).pow(8 * (exp - 3)))
+    val target = BigInteger.valueOf(mant).multiply(
+        BigInteger.valueOf(2).pow(8 * (exp - 3)))
     val targetStr = "%064x".format(target)
 
     var nonce = 0
     while (working && nonce < 0x100000000) {
 
-      val headerBuffer = ByteBuffer.allocate(4 + 32 + 32 + 4 + 4 + 4)
+      val headerBuffer = ByteBuffer.allocate(4 + 32 + 32 + 4 + 8 + 4)
       headerBuffer.put(ByteBuffer.allocate(4).putInt(ver).array()) // version
       headerBuffer.put(parentHash) // parentHash
       headerBuffer.put(merkleRoot) // trxTrieRoot
       headerBuffer.put(ByteBuffer.allocate(4).putInt(time).array()) // time
-      headerBuffer.put(ByteBuffer.allocate(4).putInt(difficulty).array()) // difficulty(current difficulty)
+      headerBuffer.put(
+          ByteBuffer.allocate(8).putLong(difficulty).array()) // difficulty(current difficulty)
       headerBuffer.put(ByteBuffer.allocate(4).putInt(nonce).array()) // nonce
 
       val header = headerBuffer.array()
@@ -72,7 +74,8 @@ object BlockMiner {
       val totalDifficulty = block.totalDifficulty + BigInteger.valueOf(difficulty.toLong())
 
       val newBlock = Block(block.version, block.height, block.parentHash, block.coinBase,
-          block.time, difficulty, nonce, totalDifficulty, block.stateRoot, block.trxTrieRoot, block.transactions)
+          block.time, difficulty, nonce, totalDifficulty, block.stateRoot, block.trxTrieRoot,
+          block.transactions)
       val result = MineResult(true, difficulty, nonce, newBlock)
 
       working = false

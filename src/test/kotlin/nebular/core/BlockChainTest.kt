@@ -3,6 +3,7 @@ package nebular.core
 import nebular.config.BlockChainConfig
 import nebular.miner.BlockMiner
 import nebular.storage.Repository
+import nebular.util.BlockChainUtil
 import nebular.util.CodecUtil
 import nebular.util.CryptoUtil
 import nebular.util.CryptoUtil.Companion.generateKeyPair
@@ -317,7 +318,7 @@ class BlockChainTest {
     println("Block nonce: ${minedBlock.nonce}")
     assertNotEquals(minedBlock.difficulty, 0)
     assertNotEquals(minedBlock.nonce, 0)
-    assert(CryptoUtil.validateBlock(minedBlock))
+    assert(BlockChainUtil.validateBlock(minedBlock))
   }
 
   /**

@@ -134,7 +134,7 @@ object CodecUtil {
     v.add(ASN1Integer(block.height))
     v.add(DERBitString(block.parentHash))
     v.add(DERBitString(block.coinBase))
-    v.add(ASN1Integer(block.difficulty.toLong()))
+    v.add(ASN1Integer(block.difficulty))
     v.add(ASN1Integer(block.nonce.toLong()))
     v.add(ASN1Integer(block.time.millis))
     v.add(ASN1Integer(block.totalDifficulty))
@@ -188,7 +188,7 @@ object CodecUtil {
       }
 
       return Block(version.toInt(), height.toLong(), parentHash, minerAddress,
-          DateTime(millis.toLong()), difficulty.toInt(), nonce.toInt(), totalDifficulty,
+          DateTime(millis.toLong()), difficulty.toLong(), nonce.toInt(), totalDifficulty,
           stateRoot, trxTrieRoot, trxList)
     }
 
