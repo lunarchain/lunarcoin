@@ -39,7 +39,7 @@ fun main(args: Array<String>) {
 
   val configFilePath = cmd.getOptionValue("config") ?: "conf/application.conf"
   val configFile = File(configFilePath)
-  val blockChain = if (configFile.exists()) BlockChain(BlockChainConfig.default()) else BlockChain(
+  val blockChain = if (!configFile.exists()) BlockChain(BlockChainConfig.default()) else BlockChain(
       BlockChainConfig(configFile))
   CHAIN_MANAGER = BlockChainManager(blockChain)
 
