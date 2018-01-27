@@ -1,5 +1,6 @@
 package lunar.util
 
+import lunar.config.DEFAULT_DIFFICULTY
 import lunar.core.Block
 import lunar.core.BlockChainManager
 import org.spongycastle.util.encoders.Hex
@@ -55,6 +56,6 @@ object BlockChainUtil {
     val bomb = Math.pow(2.toDouble(), (((parentHeight + 1) / 100000) - 2).toDouble()).toLong()
 
     val difficulty = parentDifficulty + parentDifficulty / 2048 * m + bomb
-    return difficulty
+    return if (difficulty > DEFAULT_DIFFICULTY) DEFAULT_DIFFICULTY else difficulty
   }
 }
