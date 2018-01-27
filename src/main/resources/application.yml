@@ -1,4 +1,4 @@
 logging:
   level:
     ROOT: ERROR
-    nebular: INFO
+    lunar: INFO
