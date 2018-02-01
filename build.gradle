@@ -11,8 +11,16 @@ buildscript {
 
 }
 
+plugins {
+    id 'org.springframework.boot' version '1.5.9.RELEASE'
+}
+
 apply plugin: "kotlin"
 apply plugin: 'application'
+
+group = 'lunar'
+version = '0.1.0-alpha'
+sourceCompatibility = 1.8
 
 repositories {
     mavenCentral()
@@ -27,11 +35,11 @@ allprojects {
     }
 }
 
-mainClassName = "nebular.NebularChainKt"
+mainClassName = "lunar.LunarCoinKt"
 
 jar {
     manifest {
-        attributes 'Main-Class': 'nebular.NebularChainKt'
+        attributes 'Main-Class': 'lunar.LunarCoinKt'
     }
 
     // This line of code recursively collects and copies all of a project's files
@@ -54,6 +62,11 @@ dependencies {
     compile "io.netty:netty-all:4.1.8.Final"
     compile "io.reactivex.rxjava2:rxjava:2.0.6"
     compile "commons-cli:commons-cli:1.4"
+    compile "org.jline:jline:3.5.1"
+    compile("org.springframework.shell:spring-shell-starter:2.0.0.RELEASE"){
+        exclude module: 'log4j-over-slf4j'
+        exclude module: 'logback-classic'
+    }
     testCompile "junit:junit:4.12"
     testCompile "org.jetbrains.kotlin:kotlin-test:$kotlin_version"
     testCompile "org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version"
