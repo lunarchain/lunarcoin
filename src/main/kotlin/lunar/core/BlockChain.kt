@@ -1,6 +1,8 @@
 package lunar.core
 
 import lunar.config.BlockChainConfig
+import lunar.config.Constants.BLOCK_REWARD
+import lunar.config.Constants.COINBASE_SENDER_ADDRESS
 import lunar.storage.BlockInfo
 import lunar.storage.MemoryDataSource
 import lunar.storage.Repository
@@ -88,7 +90,7 @@ class BlockChain(val config: BlockChainConfig) {
    */
   private fun generateCoinBaseTransaction(): Transaction {
     return Transaction(COINBASE_SENDER_ADDRESS,
-        config.getMinerCoinbase(), BigInteger.valueOf(25), DateTime(), config.getNodePubKey()!!)
+        config.getMinerCoinbase(), BLOCK_REWARD, DateTime(), config.getNodePubKey()!!)
   }
 
   /**

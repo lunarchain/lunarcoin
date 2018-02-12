@@ -1,6 +1,6 @@
 package lunar.util
 
-import lunar.config.DEFAULT_DIFFICULTY
+import lunar.config.Constants.DEFAULT_DIFFICULTY
 import lunar.core.Block
 import lunar.core.BlockChainManager
 import org.spongycastle.util.encoders.Hex

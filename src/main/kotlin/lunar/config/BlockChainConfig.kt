@@ -14,8 +14,6 @@ import java.security.PrivateKey
 import java.security.PublicKey
 import java.util.*
 
-val DEFAULT_DIFFICULTY = 0x1d80ffff.toLong() // 比特币的最小(初始)难度为0x1d00ffff，为测试方便我们降低难度为0x1e00ffff
-
 class BlockChainConfig {
 
   private val DEFAULT_PEER_LISTEN_PORT = 9333

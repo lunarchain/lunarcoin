@@ -2,7 +2,7 @@ package lunar.core
 
 import io.reactivex.Flowable
 import io.reactivex.schedulers.Schedulers
-import lunar.config.DEFAULT_DIFFICULTY
+import lunar.config.Constants.DEFAULT_DIFFICULTY
 import lunar.miner.BlockMiner
 import lunar.miner.MineResult
 import lunar.network.Peer

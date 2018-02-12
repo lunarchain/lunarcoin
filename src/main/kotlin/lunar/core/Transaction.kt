@@ -1,5 +1,6 @@
 package lunar.core
 
+import lunar.config.Constants.COINBASE_SENDER_ADDRESS
 import lunar.util.CodecUtil
 import lunar.util.CryptoUtil
 import org.joda.time.DateTime
@@ -8,8 +9,6 @@ import java.math.BigInteger
 import java.security.PrivateKey
 import java.security.PublicKey
 import java.util.*
-
-val COINBASE_SENDER_ADDRESS = Hex.decode("0000000000000000000000000000000000000000")
 
 /**
  * 交易记录类：记录了发送方(sender)向接受方(receiver)的转账记录，包括金额(amount)、时间戳(time)、发送方的公钥和签名。
