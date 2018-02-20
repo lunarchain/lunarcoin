@@ -35,7 +35,7 @@ allprojects {
     }
 }
 
-mainClassName = "lunar.LunarCoinKt"
+mainClassName = "io.lunarchain.lunarcoin.LunarCoinKt"
 
 jar {
     manifest {
