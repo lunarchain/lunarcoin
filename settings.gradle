@@ -1,0 +1,2 @@
+include "lunarcoin-core"
+project(':lunarcoin-core').projectDir = new File('../lunarcoin-core')
