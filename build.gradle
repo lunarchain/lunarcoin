@@ -39,7 +39,7 @@ mainClassName = "lunar.LunarCoinKt"
 
 jar {
     manifest {
-        attributes 'Main-Class': 'lunar.LunarCoinKt'
+        attributes 'Main-Class': 'io.lunarchain.lunarcoin.LunarCoinKt'
     }
 
     // This line of code recursively collects and copies all of a project's files
