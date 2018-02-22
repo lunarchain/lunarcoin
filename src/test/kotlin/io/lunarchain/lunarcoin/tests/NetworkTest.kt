@@ -4,7 +4,7 @@ import io.lunarchain.lunarcoin.config.BlockChainConfig
 import io.lunarchain.lunarcoin.core.*
 import io.lunarchain.lunarcoin.network.client.PeerClient
 import io.lunarchain.lunarcoin.network.server.PeerServer
-import io.lunarchain.lunarcoin.storage.Repository
+import io.lunarchain.lunarcoin.storage.ServerRepository
 import io.lunarchain.lunarcoin.util.CryptoUtil
 import org.joda.time.DateTime
 import org.junit.Test
@@ -15,7 +15,7 @@ class NetworkTest {
 
     val config = BlockChainConfig.default()
 
-    val repository = Repository.getInstance(config)
+    val repository = ServerRepository.getInstance(config)
 
     val transactionExecutor = TransactionExecutor(repository)
 
@@ -25,9 +25,9 @@ class NetworkTest {
 
         val clientConfig = BlockChainConfig("application-2.conf")
 
-        val serverChain = BlockChain(serverConfig)
+        val serverChain = BlockChain(serverConfig, ServerRepository.getInstance(serverConfig))
 
-        val clientChain = BlockChain(clientConfig)
+        val clientChain = BlockChain(clientConfig, ServerRepository.getInstance(serverConfig))
 
         val serverManager = BlockChainManager(serverChain)
 
@@ -62,11 +62,11 @@ class NetworkTest {
 
     fun newTransaction(): Transaction {
         // 初始化Alice账户
-        val kp1 = CryptoUtil.generateKeyPair() ?: throw Exception()
+        val kp1 = CryptoUtil.generateKeyPair()
         val alice = Account(kp1.public)
 
         // 初始化Bob账户
-        val kp2 = CryptoUtil.generateKeyPair() ?: throw Exception()
+        val kp2 = CryptoUtil.generateKeyPair()
         val bob = Account(kp2.public)
 
         // 初始金额为200

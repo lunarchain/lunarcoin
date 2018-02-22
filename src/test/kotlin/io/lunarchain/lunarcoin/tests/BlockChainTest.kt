@@ -3,7 +3,7 @@ package io.lunarchain.lunarcoin.tests
 import io.lunarchain.lunarcoin.config.BlockChainConfig
 import io.lunarchain.lunarcoin.core.*
 import io.lunarchain.lunarcoin.miner.BlockMiner
-import io.lunarchain.lunarcoin.storage.Repository
+import io.lunarchain.lunarcoin.storage.ServerRepository
 import io.lunarchain.lunarcoin.util.BlockChainUtil
 import io.lunarchain.lunarcoin.util.CodecUtil
 import io.lunarchain.lunarcoin.util.CryptoUtil
@@ -34,7 +34,7 @@ class BlockChainTest {
 
     val config = BlockChainConfig.default()
 
-    val repository = Repository.getInstance(config)
+    val repository = ServerRepository.getInstance(config)
 
     val transactionExecutor = TransactionExecutor(repository)
 
@@ -45,7 +45,7 @@ class BlockChainTest {
 
     @After
     fun close() {
-        repository.getAccountStateStore()?.db?.close()
+        repository.close()
     }
 
     /**
@@ -53,7 +53,7 @@ class BlockChainTest {
      */
     @Test
     fun validateAddressTest() {
-        val keyPair = generateKeyPair() ?: return
+        val keyPair = generateKeyPair() 
 
         val account = Account(keyPair.public)
         assert(account.address.size == 20)
@@ -69,7 +69,7 @@ class BlockChainTest {
         val alice = Account(kp1.public)
 
         // 初始化Bob账户
-        val kp2 = generateKeyPair() ?: return
+        val kp2 = generateKeyPair() 
         val bob = Account(kp2.public)
 
         // 初始金额为200
@@ -126,11 +126,11 @@ class BlockChainTest {
     @Test
     fun verifyTransactionSignatureTest() {
         // 初始化Alice账户
-        val kp1 = generateKeyPair() ?: return
+        val kp1 = generateKeyPair() 
         val alice = Account(kp1.public)
 
         // 初始化Bob账户
-        val kp2 = generateKeyPair() ?: return
+        val kp2 = generateKeyPair() 
         val bob = Account(kp2.public)
 
         // Alice向Bob转账100
@@ -149,7 +149,7 @@ class BlockChainTest {
     @Test
     fun addressTest() {
         // 初始化Alice账户
-        val kp1 = generateKeyPair() ?: return
+        val kp1 = generateKeyPair() 
         val alice = Account(kp1.public)
 
         assertNotNull(alice.address)
@@ -163,11 +163,11 @@ class BlockChainTest {
     @Test
     fun createBlockTest() {
         // 初始化Alice账户
-        val kp1 = generateKeyPair() ?: return
+        val kp1 = generateKeyPair() 
         val alice = Account(kp1.public)
 
         // 初始化Bob账户
-        val kp2 = generateKeyPair() ?: return
+        val kp2 = generateKeyPair() 
         val bob = Account(kp2.public)
 
         // 初始金额为200
@@ -180,12 +180,12 @@ class BlockChainTest {
         trx.sign(kp1.private)
 
         // 初始化矿工Charlie账户
-        val kp3 = generateKeyPair() ?: return
+        val kp3 = generateKeyPair() 
         val charlie = Account(kp3.public)
 
         // 构造新的区块
         config.setMinerCoinbase(charlie.address)
-        val blockChain = BlockChain(config)
+        val blockChain = BlockChain(config, ServerRepository.getInstance(config))
         val block = blockChain.generateNewBlock(listOf(trx))
         blockChain.processBlock(block)
 
@@ -251,11 +251,11 @@ class BlockChainTest {
     @Test
     fun merkleTest() {
         // 初始化Alice账户
-        val kp1 = generateKeyPair() ?: return
+        val kp1 = generateKeyPair() 
         val alice = Account(kp1.public)
 
         // 初始化Bob账户
-        val kp2 = generateKeyPair() ?: return
+        val kp2 = generateKeyPair() 
         val bob = Account(kp2.public)
 
         // Alice向Bob转账100
@@ -280,11 +280,11 @@ class BlockChainTest {
     @Test
     fun mineBlockTest() {
         // 初始化Alice账户
-        val kp1 = generateKeyPair() ?: return
+        val kp1 = generateKeyPair() 
         val alice = Account(kp1.public)
 
         // 初始化Bob账户
-        val kp2 = generateKeyPair() ?: return
+        val kp2 = generateKeyPair() 
         val bob = Account(kp2.public)
 
         // 初始金额为200
@@ -297,12 +297,12 @@ class BlockChainTest {
         trx.sign(kp1.private)
 
         // 初始化矿工Charlie账户
-        val kp3 = generateKeyPair() ?: return
+        val kp3 = generateKeyPair() 
         val charlie = Account(kp3.public)
 
         // 构造新的区块
         config.setMinerCoinbase(charlie.address)
-        val blockChain = BlockChain(config)
+        val blockChain = BlockChain(config, ServerRepository.getInstance(config))
         val block = blockChain.generateNewBlock(listOf(trx))
         blockChain.processBlock(block)
 
@@ -346,11 +346,11 @@ class BlockChainTest {
     @Test
     fun transactionEncodeTest() {
         // 初始化Alice账户
-        val kp1 = generateKeyPair() ?: return
+        val kp1 = generateKeyPair() 
         val alice = Account(kp1.public)
 
         // 初始化Bob账户
-        val kp2 = generateKeyPair() ?: return
+        val kp2 = generateKeyPair() 
         val bob = Account(kp2.public)
 
         // 初始金额为200
@@ -379,11 +379,11 @@ class BlockChainTest {
     @Test
     fun blockEncodeTest() {
         // 初始化Alice账户
-        val kp1 = generateKeyPair() ?: return
+        val kp1 = generateKeyPair() 
         val alice = Account(kp1.public)
 
         // 初始化Bob账户
-        val kp2 = generateKeyPair() ?: return
+        val kp2 = generateKeyPair() 
         val bob = Account(kp2.public)
 
         // 初始金额为200
@@ -403,12 +403,12 @@ class BlockChainTest {
         trx2.sign(kp1.private)
 
         // 初始化矿工Charlie账户
-        val kp3 = generateKeyPair() ?: return
+        val kp3 = generateKeyPair() 
         val charlie = Account(kp3.public)
 
         // 构造新的区块
         config.setMinerCoinbase(charlie.address)
-        val blockChain = BlockChain(config)
+        val blockChain = BlockChain(config, ServerRepository.getInstance(config))
         val block = blockChain.generateNewBlock(listOf(trx1, trx2))
         blockChain.processBlock(block)
 
@@ -431,7 +431,7 @@ class BlockChainTest {
     @Test
     fun getPublicKeyFromPrivateKeyTest() {
         for (i in 0..100) {
-            val kp = generateKeyPair() ?: return
+            val kp = generateKeyPair() 
             val privateKey = kp.private
             val publicKey = kp.public
 

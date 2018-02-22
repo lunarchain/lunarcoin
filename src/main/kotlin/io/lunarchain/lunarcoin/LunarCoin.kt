@@ -5,6 +5,7 @@ import io.lunarchain.lunarcoin.core.BlockChain
 import io.lunarchain.lunarcoin.core.BlockChainManager
 import io.lunarchain.lunarcoin.network.server.PeerServer
 import io.lunarchain.lunarcoin.repl.LunarCoinShell
+import io.lunarchain.lunarcoin.storage.ServerRepository
 import org.apache.commons.cli.*
 import org.springframework.boot.SpringApplication
 import java.io.File
@@ -37,9 +38,8 @@ fun main(args: Array<String>) {
 
     val configFilePath = cmd.getOptionValue("config") ?: "conf/application.conf"
     val configFile = File(configFilePath)
-    val blockChain = if (!configFile.exists()) BlockChain(BlockChainConfig.default()) else BlockChain(
-        BlockChainConfig(configFile)
-    )
+    val blockChainConfig = if (!configFile.exists()) BlockChainConfig.default() else BlockChainConfig(configFile)
+    val blockChain = BlockChain(blockChainConfig, ServerRepository.getInstance(blockChainConfig))
     val manager = BlockChainManager(blockChain)
 
     val terminal = cmd.hasOption('t')
