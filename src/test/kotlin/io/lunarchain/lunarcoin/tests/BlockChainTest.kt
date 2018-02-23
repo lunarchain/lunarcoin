@@ -186,7 +186,7 @@ class BlockChainTest {
         // 构造新的区块
         config.setMinerCoinbase(charlie.address)
         val blockChain = BlockChain(config, ServerRepository.getInstance(config))
-        val block = blockChain.generateNewBlock(listOf(trx))
+        val block = blockChain.generateNewBlock(blockChain.getBestBlock(), listOf(trx))
         blockChain.processBlock(block)
 
         // 查询余额是否正确
@@ -303,7 +303,7 @@ class BlockChainTest {
         // 构造新的区块
         config.setMinerCoinbase(charlie.address)
         val blockChain = BlockChain(config, ServerRepository.getInstance(config))
-        val block = blockChain.generateNewBlock(listOf(trx))
+        val block = blockChain.generateNewBlock(blockChain.getBestBlock(), listOf(trx))
         blockChain.processBlock(block)
 
         // 查询余额是否正确
@@ -409,7 +409,7 @@ class BlockChainTest {
         // 构造新的区块
         config.setMinerCoinbase(charlie.address)
         val blockChain = BlockChain(config, ServerRepository.getInstance(config))
-        val block = blockChain.generateNewBlock(listOf(trx1, trx2))
+        val block = blockChain.generateNewBlock(blockChain.getBestBlock(), listOf(trx1, trx2))
         blockChain.processBlock(block)
 
         println(ASN1Dump.dumpAsString(ASN1InputStream(block.encode()).readObject()))
