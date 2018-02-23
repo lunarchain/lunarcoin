@@ -11,6 +11,7 @@ import io.lunarchain.lunarcoin.serialization.BlockSerialize
 import io.lunarchain.lunarcoin.serialization.TransactionSerialize
 import io.lunarchain.lunarcoin.trie.PatriciaTrie
 import io.lunarchain.lunarcoin.util.CodecUtil
+import lunar.vm.DataWord
 import java.math.BigInteger
 
 /**
@@ -291,7 +292,7 @@ class ServerRepository : Repository {
         return ret
     }
 
-    fun getAccountState(address: ByteArray) = getAccountStateStore()?.get(
+    override fun getAccountState(address: ByteArray) = getAccountStateStore()?.get(
         address
     )?.let { CodecUtil.decodeAccountState(it) }
 
@@ -302,6 +303,27 @@ class ServerRepository : Repository {
     override fun getAccountStateRoot(): ByteArray? {
         return getAccountStateStore()?.rootHash
     }
+
+    override fun isExist(address: ByteArray): Boolean {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
+
+    override fun getStorageValue(addr: ByteArray, key: DataWord): DataWord {
+        TODO("not implemented")
+    }
+
+    override fun getCode(addr: ByteArray): ByteArray? {
+        TODO("not implemented")
+    }
+
+    override fun getBlockHashByNumber(blockNumber: Long, branchBlockHash: ByteArray): ByteArray {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
+
+    override fun addStorageRow(addr: ByteArray, key: DataWord, value: DataWord) {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
+
 
     override fun updateBlockInfo(height: Long, blockInfo: BlockInfo) {
         val blockIndexStore = getBlockIndexStore()
