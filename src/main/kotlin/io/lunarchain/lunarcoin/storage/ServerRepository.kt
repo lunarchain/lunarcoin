@@ -80,16 +80,25 @@ class ServerRepository : Repository {
      */
     private var bestBlockDs: ObjectStore<Block>? = null
 
+    private var dbHelper: SqliteDbHelper? = null
+    private fun getDbHelper(): SqliteDbHelper {
+        if (dbHelper == null) {
+            dbHelper = SqliteDbHelper(config)
+        }
+        return dbHelper as SqliteDbHelper
+    }
+
     /**
      * Account State的存储类组装。
      */
     private fun getAccountStateStore(): PatriciaTrie? {
         if (accountStateDs != null) return accountStateDs
 
-        val dbName = "accountState"
-        var ds: DataSource<ByteArray, ByteArray> = MemoryDataSource(dbName)
-        if (config.getDatabaseType().equals(BlockChainConfig.DatabaseType.LEVELDB.name, true)) {
-            ds = LevelDbDataSource(dbName, config.getDatabaseDir())
+        val bucketName = BUCKET_NAME_ACCOUNT_STATE
+        var ds: DataSource<ByteArray, ByteArray> = MemoryDataSource(bucketName)
+        when (config.getDatabaseType()) {
+            BlockChainConfig.DatabaseType.LEVELDB.name -> ds = LevelDbDataSource(bucketName, config.getDatabaseDir())
+            BlockChainConfig.DatabaseType.SQLITE.name -> ds = SqliteDataSource(bucketName, getDbHelper())
         }
         ds.init()
         accountStateDs = PatriciaTrie(ds)
@@ -101,10 +110,11 @@ class ServerRepository : Repository {
      */
     private fun getAccountStore(password: String): ObjectStore<AccountWithKey>? {
         if (accountDs == null) {
-            val dbName = "account"
-            var ds: DataSource<ByteArray, ByteArray> = MemoryDataSource(dbName)
-            if (config.getDatabaseType().equals(BlockChainConfig.DatabaseType.LEVELDB.name, true)) {
-                ds = LevelDbDataSource(dbName, config.getDatabaseDir())
+            val bucketName = BUCKET_NAME_ACCOUNT
+            var ds: DataSource<ByteArray, ByteArray> = MemoryDataSource(bucketName)
+            when (config.getDatabaseType()) {
+                BlockChainConfig.DatabaseType.LEVELDB.name -> ds = LevelDbDataSource(bucketName, config.getDatabaseDir())
+                BlockChainConfig.DatabaseType.SQLITE.name -> ds = SqliteDataSource(bucketName, getDbHelper())
             }
             ds.init()
             accountDs = ds
@@ -121,10 +131,11 @@ class ServerRepository : Repository {
     private fun getBlockStore(): ObjectStore<Block>? {
         if (blockDs != null) return blockDs
 
-        val dbName = "block"
-        var ds: DataSource<ByteArray, ByteArray> = MemoryDataSource(dbName)
-        if (config.getDatabaseType().equals(BlockChainConfig.DatabaseType.LEVELDB.name, true)) {
-            ds = LevelDbDataSource(dbName, config.getDatabaseDir())
+        val bucketName = BUCKET_NAME_BLOCK
+        var ds: DataSource<ByteArray, ByteArray> = MemoryDataSource(bucketName)
+        when (config.getDatabaseType()) {
+            BlockChainConfig.DatabaseType.LEVELDB.name -> ds = LevelDbDataSource(bucketName, config.getDatabaseDir())
+            BlockChainConfig.DatabaseType.SQLITE.name -> ds = SqliteDataSource(bucketName, getDbHelper())
         }
         ds.init()
         blockDs = ObjectStore(ds, BlockSerialize())
@@ -137,10 +148,11 @@ class ServerRepository : Repository {
     private fun getTransactionStore(): ObjectStore<Transaction>? {
         if (transactionDs != null) return transactionDs
 
-        val dbName = "transaction"
-        var ds: DataSource<ByteArray, ByteArray> = MemoryDataSource(dbName)
-        if (config.getDatabaseType().equals(BlockChainConfig.DatabaseType.LEVELDB.name, true)) {
-            ds = LevelDbDataSource(dbName, config.getDatabaseDir())
+        val bucketName = BUCKET_NAME_BLOCK_TRANSACTION
+        var ds: DataSource<ByteArray, ByteArray> = MemoryDataSource(bucketName)
+        when (config.getDatabaseType()) {
+            BlockChainConfig.DatabaseType.LEVELDB.name -> ds = LevelDbDataSource(bucketName, config.getDatabaseDir())
+            BlockChainConfig.DatabaseType.SQLITE.name -> ds = SqliteDataSource(bucketName, getDbHelper())
         }
         ds.init()
         transactionDs = ObjectStore<Transaction>(ds, TransactionSerialize())
@@ -153,10 +165,11 @@ class ServerRepository : Repository {
     private fun getBlockIndexStore(): ObjectStore<List<BlockInfo>>? {
         if (blockIndexDs != null) return blockIndexDs
 
-        val dbName = "blockIndex"
-        var ds: DataSource<ByteArray, ByteArray> = MemoryDataSource(dbName)
-        if (config.getDatabaseType().equals(BlockChainConfig.DatabaseType.LEVELDB.name, true)) {
-            ds = LevelDbDataSource(dbName, config.getDatabaseDir())
+        val bucketName = BUCKET_NAME_BLOCK_INDEX
+        var ds: DataSource<ByteArray, ByteArray> = MemoryDataSource(bucketName)
+        when (config.getDatabaseType()) {
+            BlockChainConfig.DatabaseType.LEVELDB.name -> ds = LevelDbDataSource(bucketName, config.getDatabaseDir())
+            BlockChainConfig.DatabaseType.SQLITE.name -> ds = SqliteDataSource(bucketName, getDbHelper())
         }
         ds.init()
         blockIndexDs = ObjectStore(ds, BlockInfosSerialize())
@@ -169,10 +182,11 @@ class ServerRepository : Repository {
     private fun getBestBlockStore(): ObjectStore<Block>? {
         if (bestBlockDs != null) return bestBlockDs
 
-        val dbName = "bestBlock"
-        var ds: DataSource<ByteArray, ByteArray> = MemoryDataSource(dbName)
-        if (config.getDatabaseType().equals(BlockChainConfig.DatabaseType.LEVELDB.name, true)) {
-            ds = LevelDbDataSource(dbName, config.getDatabaseDir())
+        val bucketName = BUCKET_NAME_BEST_BLOCK
+        var ds: DataSource<ByteArray, ByteArray> = MemoryDataSource(bucketName)
+        when (config.getDatabaseType()) {
+            BlockChainConfig.DatabaseType.LEVELDB.name -> ds = LevelDbDataSource(bucketName, config.getDatabaseDir())
+            BlockChainConfig.DatabaseType.SQLITE.name -> ds = SqliteDataSource(bucketName, getDbHelper())
         }
         ds.init()
         bestBlockDs = ObjectStore(ds, BlockSerialize())
