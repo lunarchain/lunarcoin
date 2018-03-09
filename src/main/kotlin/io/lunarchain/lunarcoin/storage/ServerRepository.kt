@@ -1,16 +1,10 @@
 package io.lunarchain.lunarcoin.storage
 
 import io.lunarchain.lunarcoin.config.BlockChainConfig
-import io.lunarchain.lunarcoin.core.AccountState
-import io.lunarchain.lunarcoin.core.AccountWithKey
-import io.lunarchain.lunarcoin.core.Block
-import io.lunarchain.lunarcoin.core.Transaction
-import io.lunarchain.lunarcoin.serialization.AccountSerialize
-import io.lunarchain.lunarcoin.serialization.BlockInfosSerialize
-import io.lunarchain.lunarcoin.serialization.BlockSerialize
-import io.lunarchain.lunarcoin.serialization.TransactionSerialize
+import io.lunarchain.lunarcoin.core.*
+import io.lunarchain.lunarcoin.serialization.*
 import io.lunarchain.lunarcoin.trie.PatriciaTrie
-import io.lunarchain.lunarcoin.util.CodecUtil
+import io.lunarchain.lunarcoin.util.*
 import lunar.vm.DataWord
 import java.math.BigInteger
 
@@ -24,7 +18,7 @@ class ServerRepository : Repository {
     /**
      * 不允许直接构造Repository。
      */
-    private constructor(config: BlockChainConfig) {
+    constructor(config: BlockChainConfig) {
         this.config = config
     }
 
@@ -58,6 +52,13 @@ class ServerRepository : Repository {
      */
     private var accountDs: DataSource<ByteArray, ByteArray>? = null
 
+
+    /**
+     * Accounts storage Db.
+     */
+
+    private var accountStorageDs: DataSource<ByteArray,ByteArray>? = null
+
     /**
      * Blocks Db.
      */
@@ -72,6 +73,12 @@ class ServerRepository : Repository {
      * Transactions Db.
      */
     private var transactionDs: ObjectStore<Transaction>? = null
+
+    /**
+     * contractCode db
+     */
+
+    private var codeDs: DataSource<ByteArray, ByteArray>? = null
 
     val BEST_BLOCK_KEY = "0".toByteArray()
 
@@ -124,6 +131,46 @@ class ServerRepository : Repository {
             return ObjectStore(accountDs!!, AccountSerialize(password))
         }
     }
+
+    /**
+     * Contract Storage的存储类组装。
+     */
+
+    private fun getCodeStorage(): DataSource<ByteArray, ByteArray>? {
+        if(codeDs == null) {
+            val dbName = "codeStorage"
+            var ds: DataSource<ByteArray, ByteArray> = MemoryDataSource(dbName)
+            if (config.getDatabaseType().equals(BlockChainConfig.DatabaseType.LEVELDB.name, true)) {
+                ds = LevelDbDataSource(dbName, config.getDatabaseDir())
+            }
+            ds.init()
+            codeDs = ds
+            return ds
+        } else {
+            return codeDs
+        }
+    }
+
+    /**
+     * Account Storage的存储类组装。
+     */
+
+    private fun getAccountStorage(): ObjectStore<AccountStorage>? {
+        if (accountStorageDs == null) {
+            val dbName = "accountStorage"
+            var ds: DataSource<ByteArray, ByteArray> = MemoryDataSource(dbName)
+            if (config.getDatabaseType().equals(BlockChainConfig.DatabaseType.LEVELDB.name, true)) {
+                ds = LevelDbDataSource(dbName, config.getDatabaseDir())
+            }
+            ds.init()
+            accountStorageDs = ds
+            return ObjectStore(ds, StorageSerialize())
+        } else {
+            return ObjectStore(accountStorageDs!!, StorageSerialize())
+        }
+    }
+
+
 
     /**
      * Block的存储类组装。
@@ -290,19 +337,32 @@ class ServerRepository : Repository {
      * 新建账户。
      */
     fun createAccountState(address: ByteArray): AccountState {
-        val state = AccountState(BigInteger.ZERO, BigInteger.ZERO)
+        val state = AccountState(BigInteger.ZERO, BigInteger.ZERO, HashUtil.EMPTY_TRIE_HASH, HashUtil.EMPTY_DATA_HASH)
         getAccountStateStore()?.update(address, CodecUtil.encodeAccountState(state))
         return state
     }
 
     /**
+     * 新建账户存储空间
+     */
+
+    fun createAccountStorage(address: ByteArray) {
+        val accountStorage = getAccountStorage()
+        val storage = accountStorage!!.get(address)
+        if(accountStorage!!.get(address) != null) return
+        else accountStorage.put(address, AccountStorage(address,HashMap()))
+
+    }
+
+    /**
      * 判断账户状态Account State是不是存在，如果不存在就新建账户。
      */
-    fun getOrCreateAccountState(address: ByteArray): AccountState {
+    override fun getOrCreateAccountState(address: ByteArray): AccountState {
         var ret = getAccountState(address)
         if (ret == null) {
             ret = createAccountState(address)
         }
+        createAccountStorage(address)
         return ret
     }
 
@@ -319,15 +379,45 @@ class ServerRepository : Repository {
     }
 
     override fun isExist(address: ByteArray): Boolean {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        return getAccountState(address) != null
     }
 
-    override fun getStorageValue(addr: ByteArray, key: DataWord): DataWord {
-        TODO("not implemented")
+    override fun getStorageValue(addr: ByteArray, key: DataWord): DataWord? {
+        val accountState = getAccountState(addr)
+        if(accountState == null) return null
+        else {
+            val accountStorage = getAccountStorage()
+            val objStorage = accountStorage!!.get(addr)!!.storage
+            return objStorage[key]
+        }
+
     }
+
+
+
+    override fun getCodeHash(addr: ByteArray): ByteArray? {
+        val accountState = getAccountState(addr)
+        return if (accountState != null) accountState.getCodeHash() else HashUtil.EMPTY_DATA_HASH
+    }
+
+    override fun saveCode(addr: ByteArray, code: ByteArray) {
+        val codeHash = CryptoUtil.sha3(code)
+        getCodeStorage()!!.put(codeHash, code)
+        val accountState = getOrCreateAccountState(addr)
+        getAccountStateStore()?.update(addr, CodecUtil.encodeAccountState(accountState.withCodeHash(codeHash)))
+
+
+    }
+
 
     override fun getCode(addr: ByteArray): ByteArray? {
-        TODO("not implemented")
+        val codeHash = getCodeHash(addr)
+        if(codeHash == null) return HashUtil.EMPTY_DATA_HASH
+        return if (FastByteComparisons.equal(codeHash!!, HashUtil.EMPTY_DATA_HASH))
+            ByteUtil.EMPTY_BYTE_ARRAY
+        else {
+            return getCodeStorage()!!.get(codeHash)
+        }
     }
 
     override fun getBlockHashByNumber(blockNumber: Long, branchBlockHash: ByteArray): ByteArray {
@@ -335,7 +425,13 @@ class ServerRepository : Repository {
     }
 
     override fun addStorageRow(addr: ByteArray, key: DataWord, value: DataWord) {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        getOrCreateAccountState(addr)
+        val accountStorage = getAccountStorage()
+        val storageObj = accountStorage!!.get(addr)
+        storageObj!!.storage.put(key, value)
+        val newStorageObj = storageObj!!.storage
+        accountStorage.put(addr, AccountStorage(addr, newStorageObj))
+
     }
 
 
