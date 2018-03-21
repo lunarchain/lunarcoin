@@ -2,7 +2,6 @@ package io.lunarchain.lunarcoin.storage
 
 class SqliteDataSource(override val name: String, val dbHelper: SqliteDbHelper): DataSource<ByteArray, ByteArray> {
 
-
     override fun get(key: ByteArray): ByteArray? {
         return dbHelper.getValue(name, key)
     }
@@ -46,4 +45,15 @@ class SqliteDataSource(override val name: String, val dbHelper: SqliteDbHelper):
         //DO NOTHING
     }
 
+    override fun start() {
+        dbHelper.start()
+    }
+
+    override fun commit() {
+        dbHelper.commit()
+    }
+
+    override fun rollback() {
+        dbHelper.rollback()
+    }
 }

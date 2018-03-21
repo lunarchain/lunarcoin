@@ -126,4 +126,16 @@ class SqliteDbHelper(val config: BlockChainConfig) {
         }
         return result
     }
+
+    fun start() {
+        connection?.autoCommit = false
+    }
+
+    fun commit() {
+        connection?.commit()
+    }
+
+    fun rollback() {
+        connection?.rollback()
+    }
 }
