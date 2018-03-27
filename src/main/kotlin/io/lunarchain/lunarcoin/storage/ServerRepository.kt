@@ -269,6 +269,15 @@ class ServerRepository : Repository {
         )
     }
 
+    override fun addBalanceWithResult(address: ByteArray, amount: BigInteger): BigInteger {
+        val accountState = getOrCreateAccountState(address)
+        getAccountStateStore()?.update(
+            address,
+            CodecUtil.encodeAccountState(accountState.increaseBalance(amount))
+        )
+        return accountState.increaseBalance(amount).balance
+    }
+
     override fun saveAccount(account: AccountWithKey, password: String): Int {
         val ds = getAccountStore(password)
         val index = ds?.keys()?.size ?: 0
@@ -348,7 +357,6 @@ class ServerRepository : Repository {
 
     fun createAccountStorage(address: ByteArray) {
         val accountStorage = getAccountStorage()
-        val storage = accountStorage!!.get(address)
         if(accountStorage!!.get(address) != null) return
         else accountStorage.put(address, AccountStorage(address,HashMap()))
 
@@ -447,4 +455,44 @@ class ServerRepository : Repository {
             blockIndexStore?.put(CodecUtil.longToByteArray(height), listOf(blockInfo))
         }
     }
+
+    override fun delete(address: ByteArray) {
+        getAccountStorage()!!.delete(address)
+    }
+
+    override fun getNonce(address: ByteArray): BigInteger {
+        return CodecUtil.decodeAccountState(getAccountStateStore()?.get(address)!!)!!.nonce
+    }
+
+    override fun setNonce(address: ByteArray, nonce: BigInteger) {
+        val accountState = getOrCreateAccountState(address)
+        getAccountStateStore()?.update(
+            address,
+            CodecUtil.encodeAccountState(accountState.setNonce(nonce))
+        )
+    }
+
+    @Synchronized
+    override fun startTracking() {
+        accountDs!!.start()
+        accountStateDs!!.start()
+        accountStorageDs!!.start()
+    }
+
+    @Synchronized
+    override fun rollback() {
+        accountDs!!.rollback()
+        accountStateDs!!.rollback()
+        accountStorageDs!!.rollback()
+    }
+
+    @Synchronized
+    override fun commit() {
+        accountDs!!.commit()
+        accountStateDs!!.commit()
+        accountStorageDs!!.commit()
+    }
+
+
+
 }
