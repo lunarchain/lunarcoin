@@ -74,7 +74,8 @@ class ShellCommands {
         if (account != null) {
             val trx = Transaction(
                 account.address, Hex.decode(toAddress),
-                amount, DateTime(), account.publicKey
+                amount, DateTime(), account.publicKey, ByteArray(0), ByteArray(0), ByteArray(0),
+                ByteArray(0), ByteArray(0)
             )
             // Alice用私钥签名
             trx.sign(account.privateKey)
