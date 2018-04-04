@@ -4,7 +4,6 @@ import io.lunarchain.lunarcoin.config.BlockChainConfig
 import org.slf4j.LoggerFactory
 import java.sql.*
 
-
 class SqliteDbHelper(val config: BlockChainConfig) {
 
     private val logger = LoggerFactory.getLogger(javaClass)
@@ -67,9 +66,10 @@ class SqliteDbHelper(val config: BlockChainConfig) {
     fun getValue(tableName: String, key: ByteArray): ByteArray? {
         if (connection != null) {
             var rs: ResultSet? = null
+            var statement: PreparedStatement? = null
             try {
-                val statement =
-                    connection!!.prepareStatement("SELECT " + FIELD_DATA_VAL + " FROM " + tableName + " WHERE " + FIELD_DATA_KEY + "=?")
+                statement =
+                        connection!!.prepareStatement("SELECT " + FIELD_DATA_VAL + " FROM " + tableName + " WHERE " + FIELD_DATA_KEY + "=?")
                 statement.setBytes(1, key)
                 rs = statement.executeQuery()
 
@@ -80,6 +80,7 @@ class SqliteDbHelper(val config: BlockChainConfig) {
                 logger.error(e.message)
             } finally {
                 rs?.close()
+                statement?.close()
             }
         }
 
@@ -88,20 +89,34 @@ class SqliteDbHelper(val config: BlockChainConfig) {
 
     fun putValue(tableName: String, key: ByteArray, value: ByteArray) {
         if (connection != null) {
-            val statement =
-                connection!!.prepareStatement("INSERT OR REPLACE INTO " + tableName + " (" + FIELD_DATA_KEY + ","+FIELD_DATA_VAL+") VALUES (?,?)")
-            statement.setBytes(1, key)
-            statement.setBytes(2, value)
-            statement.executeUpdate()
+            var statement: PreparedStatement? = null
+            try {
+                statement =
+                        connection!!.prepareStatement("INSERT OR REPLACE INTO " + tableName + " (" + FIELD_DATA_KEY + ","+FIELD_DATA_VAL+") VALUES (?,?)")
+                statement.setBytes(1, key)
+                statement.setBytes(2, value)
+                statement.executeUpdate()
+            } catch (e: Exception) {
+                logger.error(e.message)
+            } finally {
+                statement?.close()
+            }
         }
     }
 
     fun deleteValue(tableName: String, key: ByteArray) {
         if (connection != null) {
-            val statement =
-                connection!!.prepareStatement("DELETE FROM " + tableName + " WHERE " + FIELD_DATA_KEY + "=?")
-            statement.setBytes(1, key)
-            statement.executeUpdate()
+            var statement: PreparedStatement? = null
+            try {
+                statement =
+                        connection!!.prepareStatement("DELETE FROM " + tableName + " WHERE " + FIELD_DATA_KEY + "=?")
+                statement.setBytes(1, key)
+                statement.executeUpdate()
+            } catch (e: Exception) {
+                logger.error(e.message)
+            } finally {
+                statement?.close()
+            }
         }
     }
 
@@ -110,9 +125,10 @@ class SqliteDbHelper(val config: BlockChainConfig) {
 
         if (connection != null) {
             var rs: ResultSet? = null
+            var statement: PreparedStatement? = null
             try {
-                val statement =
-                    connection!!.prepareStatement("SELECT " + FIELD_DATA_VAL + " FROM " + tableName)
+                statement =
+                        connection!!.prepareStatement("SELECT " + FIELD_DATA_VAL + " FROM " + tableName)
                 rs = statement.executeQuery()
 
                 while (rs.next()) {
@@ -122,6 +138,7 @@ class SqliteDbHelper(val config: BlockChainConfig) {
                 logger.error(e.message)
             } finally {
                 rs?.close()
+                statement?.close()
             }
         }
         return result

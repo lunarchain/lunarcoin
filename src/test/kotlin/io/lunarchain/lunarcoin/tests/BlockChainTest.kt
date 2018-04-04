@@ -10,6 +10,7 @@ import io.lunarchain.lunarcoin.util.CryptoUtil
 import io.lunarchain.lunarcoin.util.CryptoUtil.Companion.generateKeyPair
 import io.lunarchain.lunarcoin.util.CryptoUtil.Companion.sha256
 import io.lunarchain.lunarcoin.util.CryptoUtil.Companion.verifyTransactionSignature
+import io.lunarchain.lunarcoin.vm.program.invoke.ProgramInvokeFactoryImpl
 import org.joda.time.DateTime
 import org.junit.After
 import org.junit.Assert.assertArrayEquals
@@ -31,22 +32,26 @@ import kotlin.test.assertNotNull
 
 
 class BlockChainTest {
-
-    val config = BlockChainConfig.default()
+    val config = BlockChainConfig("application-1.conf")
 
     val repository = ServerRepository.getInstance(config)
 
-    val transactionExecutor = TransactionExecutor(repository)
+    // 初始化矿工Charlie账户
+    val kp3 = generateKeyPair()
+    val charlie = Account(kp3.public)
+
 
     @Before
     fun setup() {
         Security.insertProviderAt(BouncyCastleProvider(), 1)
+        config.setMinerCoinbase(charlie.address)
     }
-
+    /*
     @After
     fun close() {
         repository.close()
     }
+    */
 
     /**
      * 验证账户地址长度为40(20个byte)。
@@ -64,29 +69,41 @@ class BlockChainTest {
      */
     @Test
     fun applyTransactionTest() {
+
+
         // 初始化Alice账户
         val kp1 = generateKeyPair()
         val alice = Account(kp1.public)
 
         // 初始化Bob账户
-        val kp2 = generateKeyPair() 
+        val kp2 = generateKeyPair()
         val bob = Account(kp2.public)
 
-        // 初始金额为200
-        transactionExecutor.addBalance(alice.address, BigInteger.valueOf(200))
-        transactionExecutor.addBalance(bob.address, BigInteger.valueOf(200))
+        repository.createAccountState(alice.address)
+        repository.createAccountState(bob.address)
+
 
         // Alice向Bob转账100
-        val trx = Transaction(alice.address, bob.address, BigInteger.valueOf(100), DateTime(), kp1.public)
+        val trx = Transaction(alice.address, bob.address, BigInteger.valueOf(100), DateTime(), kp1.public, ByteArray(0),
+            (repository.getAccountState(alice.address)!!.nonce).toByteArray(), 1.toBigInteger().toByteArray(), 100.toBigInteger().toByteArray(), ByteArray(0))
         // Alice用私钥签名
         trx.sign(kp1.private)
 
+        val transactionExecutor = TransactionExecutor(repository, config.getGenesisBlock(), trx, 0L, repository, ProgramInvokeFactoryImpl())
+
+        // 初始金额为500
+        transactionExecutor.addBalance(alice.address, BigInteger.valueOf(500))
+        transactionExecutor.addBalance(bob.address, BigInteger.valueOf(500))
+
         // 根据交易记录更新区块链状态
-        transactionExecutor.execute(trx)
+        repository.startTracking()
+        transactionExecutor.init()
+        transactionExecutor.execute()
+        transactionExecutor.go()
 
         // 查询余额是否正确
-        assert(repository.getBalance(alice.address) == BigInteger.valueOf(100))
-        assert(repository.getBalance(bob.address) == BigInteger.valueOf(300))
+        assert(repository.getBalance(alice.address) == BigInteger.valueOf(300))
+        assert(repository.getBalance(bob.address) == BigInteger.valueOf(600))
     }
 
     /**
@@ -125,16 +142,22 @@ class BlockChainTest {
      */
     @Test
     fun verifyTransactionSignatureTest() {
+
         // 初始化Alice账户
-        val kp1 = generateKeyPair() 
+        val kp1 = generateKeyPair()
         val alice = Account(kp1.public)
 
         // 初始化Bob账户
-        val kp2 = generateKeyPair() 
+        val kp2 = generateKeyPair()
         val bob = Account(kp2.public)
 
+
+        repository.createAccountState(alice.address)
+        repository.createAccountState(bob.address)
+
         // Alice向Bob转账100
-        val trx = Transaction(alice.address, bob.address, BigInteger.valueOf(100), DateTime(), kp1.public)
+        val trx = Transaction(alice.address, bob.address, BigInteger.valueOf(100), DateTime(), kp1.public, ByteArray(0),
+            (repository.getAccountState(alice.address)!!.nonce).toByteArray(), 1.toBigInteger().toByteArray(), 100.toBigInteger().toByteArray(), ByteArray(0))
 
         // Alice用私钥签名
         val signature = trx.sign(kp1.private)
@@ -162,6 +185,10 @@ class BlockChainTest {
      */
     @Test
     fun createBlockTest() {
+
+
+        val blockChain = BlockChain(config, repository)
+
         // 初始化Alice账户
         val kp1 = generateKeyPair() 
         val alice = Account(kp1.public)
@@ -170,28 +197,28 @@ class BlockChainTest {
         val kp2 = generateKeyPair() 
         val bob = Account(kp2.public)
 
-        // 初始金额为200
-        transactionExecutor.addBalance(bob.address, BigInteger.valueOf(200))
-        transactionExecutor.addBalance(alice.address, BigInteger.valueOf(200))
+        repository.createAccountState(alice.address)
+        repository.createAccountState(bob.address)
+
 
         // Alice向Bob转账100
-        val trx = Transaction(alice.address, bob.address, BigInteger.valueOf(100), DateTime(), kp1.public)
+        val trx = Transaction(alice.address, bob.address, BigInteger.valueOf(100), DateTime(), kp1.public, ByteArray(0),
+            (repository.getAccountState(alice.address)!!.nonce).toByteArray(), 1.toBigInteger().toByteArray(), 100.toBigInteger().toByteArray(), ByteArray(0))
         // Alice用私钥签名
         trx.sign(kp1.private)
 
-        // 初始化矿工Charlie账户
-        val kp3 = generateKeyPair() 
-        val charlie = Account(kp3.public)
+        val transactionExecutor = TransactionExecutor(repository, config.getGenesisBlock(), trx, 0L, repository, ProgramInvokeFactoryImpl())
 
-        // 构造新的区块
-        config.setMinerCoinbase(charlie.address)
-        val blockChain = BlockChain(config, ServerRepository.getInstance(config))
+        // 初始金额为500
+        transactionExecutor.addBalance(alice.address, BigInteger.valueOf(500))
+        transactionExecutor.addBalance(bob.address, BigInteger.valueOf(500))
+
         val block = blockChain.generateNewBlock(blockChain.getBestBlock(), listOf(trx))
         blockChain.processBlock(block)
 
         // 查询余额是否正确
-        assert(repository.getBalance(alice.address) == BigInteger.valueOf(100))
-        assert(repository.getBalance(bob.address) == BigInteger.valueOf(300))
+        assert(repository.getBalance(alice.address) == BigInteger.valueOf(300))
+        assert(repository.getBalance(bob.address) == BigInteger.valueOf(600))
     }
 
     /**
@@ -235,7 +262,7 @@ class BlockChainTest {
             nonce += 1
         }
     }
-
+/*
     /**
      * 挖矿难度(Difficulty)运算测试。
      */
@@ -442,5 +469,6 @@ class BlockChainTest {
             println("Pass public key from private key test :$i")
         }
     }
+    */
 
 }

@@ -55,6 +55,7 @@ dependencies {
     compile "log4j:log4j:1.2.17"
     compile "org.iq80.leveldb:leveldb:0.9"
     compile "org.xerial:sqlite-jdbc:3.21.0.1"
+    compile "org.xerial:sqlite-jdbc:3.21.0.1"
     compile "commons-cli:commons-cli:1.4"
     compile "org.jline:jline:3.5.1"
     compile("org.springframework.shell:spring-shell-starter:2.0.0.RELEASE"){

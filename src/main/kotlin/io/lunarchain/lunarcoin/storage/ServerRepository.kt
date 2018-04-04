@@ -98,7 +98,7 @@ class ServerRepository : Repository {
     /**
      * Account State的存储类组装。
      */
-    private fun getAccountStateStore(): PatriciaTrie? {
+    fun getAccountStateStore(): PatriciaTrie? {
         if (accountStateDs != null) return accountStateDs
 
         val bucketName = BUCKET_NAME_ACCOUNT_STATE
@@ -345,7 +345,7 @@ class ServerRepository : Repository {
     /**
      * 新建账户。
      */
-    fun createAccountState(address: ByteArray): AccountState {
+    override fun createAccountState(address: ByteArray): AccountState {
         val state = AccountState(BigInteger.ZERO, BigInteger.ZERO, HashUtil.EMPTY_TRIE_HASH, HashUtil.EMPTY_DATA_HASH)
         getAccountStateStore()?.update(address, CodecUtil.encodeAccountState(state))
         return state
@@ -355,7 +355,7 @@ class ServerRepository : Repository {
      * 新建账户存储空间
      */
 
-    fun createAccountStorage(address: ByteArray) {
+    override fun createAccountStorage(address: ByteArray) {
         val accountStorage = getAccountStorage()
         if(accountStorage!!.get(address) != null) return
         else accountStorage.put(address, AccountStorage(address,HashMap()))
@@ -474,21 +474,21 @@ class ServerRepository : Repository {
 
     @Synchronized
     override fun startTracking() {
-        accountDs!!.start()
+        //accountDs!!.start()
         accountStateDs!!.start()
         accountStorageDs!!.start()
     }
 
     @Synchronized
     override fun rollback() {
-        accountDs!!.rollback()
+        //accountDs!!.rollback()
         accountStateDs!!.rollback()
         accountStorageDs!!.rollback()
     }
 
     @Synchronized
     override fun commit() {
-        accountDs!!.commit()
+        //accountDs!!.commit()
         accountStateDs!!.commit()
         accountStorageDs!!.commit()
     }

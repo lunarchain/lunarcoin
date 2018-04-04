@@ -69,12 +69,12 @@ class ShellCommands {
     }
 
     @ShellMethod("Account.", key = ["account.transfer"])
-    fun accountTransfer(toAddress: String, amount: BigInteger): String {
+    fun accountTransfer(toAddress: String, amount: BigInteger, nonce: BigInteger, gasPrice: BigInteger, gasLimit: BigInteger, data: ByteArray): String {
         val account = BlockChainManager.INSTANCE.currentAccount
         if (account != null) {
             val trx = Transaction(
                 account.address, Hex.decode(toAddress),
-                amount, DateTime(), account.publicKey
+                amount, DateTime(), account.publicKey, ByteArray(0), nonce.toByteArray(),  gasPrice.toByteArray(), gasLimit.toByteArray(), data
             )
             // Alice用私钥签名
             trx.sign(account.privateKey)
