@@ -46,11 +46,11 @@ fun main(args: Array<String>) {
     if (terminal) {
         SpringApplication.run(LunarCoinShell::class.java)
     } else {
-        var server: PeerServer
-        server = PeerServer(manager)
+        manager.start()
+
+        val server = PeerServer(manager)
         server.start()
 
-        manager.startPeerDiscovery()
         println("LunarCoin started.")
     }
 }
