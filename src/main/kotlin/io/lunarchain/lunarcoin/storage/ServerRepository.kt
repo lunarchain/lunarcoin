@@ -98,7 +98,7 @@ class ServerRepository : Repository {
     /**
      * Account State的存储类组装。
      */
-    fun getAccountStateStore(): PatriciaTrie? {
+    override fun getAccountStateStore(): PatriciaTrie? {
         if (accountStateDs != null) return accountStateDs
 
         val bucketName = BUCKET_NAME_ACCOUNT_STATE
