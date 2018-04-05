@@ -54,7 +54,7 @@ class BlockChainTest {
     */
 
 
-
+/*
     /**
      * 验证账户地址长度为40(20个byte)。
      */
@@ -265,10 +265,10 @@ class BlockChainTest {
         }
     }
 
+*/
 
 
 /*
-
     /**
      * 挖矿难度(Difficulty)运算测试。
      */
@@ -364,9 +364,10 @@ class BlockChainTest {
         assertNotEquals(minedBlock.nonce, 0)
         assert(BlockChainUtil.validateBlock(minedBlock, bestBlock.time.millis / 1000, bestBlock.difficulty))
     }
-    */
+*/
 
-/*
+    /*
+
     /**
      * 账户状态序列化/反序列化测试。
      */
@@ -395,14 +396,20 @@ class BlockChainTest {
         val kp2 = generateKeyPair() 
         val bob = Account(kp2.public)
 
-        // 初始金额为200
-        transactionExecutor.addBalance(alice.address, BigInteger.valueOf(200))
-        transactionExecutor.addBalance(bob.address, BigInteger.valueOf(200))
+        repository.createAccountState(alice.address)
+        repository.createAccountState(bob.address)
 
         // Alice向Bob转账100
-        val trx = Transaction(alice.address, bob.address, BigInteger.valueOf(100), DateTime(), kp1.public)
+        val trx = Transaction(alice.address, bob.address, BigInteger.valueOf(100), DateTime(), kp1.public, ByteArray(0),
+            (repository.getAccountState(alice.address)!!.nonce).toByteArray(), 1.toBigInteger().toByteArray(), 100.toBigInteger().toByteArray(), ByteArray(0))
         // Alice用私钥签名
         trx.sign(kp1.private)
+
+        val transactionExecutor = TransactionExecutor(repository, config.getGenesisBlock(), trx, 0L, repository, ProgramInvokeFactoryImpl())
+
+        // 初始金额为500
+        transactionExecutor.addBalance(alice.address, BigInteger.valueOf(500))
+        transactionExecutor.addBalance(bob.address, BigInteger.valueOf(500))
 
         println(ASN1Dump.dumpAsString(ASN1InputStream(trx.encode()).readObject()))
 
@@ -414,6 +421,8 @@ class BlockChainTest {
         assertEquals(trx.time.millis, decoded.time.millis)
         assertEquals(trx.publicKey, decoded.publicKey)
     }
+
+    */
 
     /**
      * 区块Block序列化/反序列化测试。
@@ -428,28 +437,29 @@ class BlockChainTest {
         val kp2 = generateKeyPair() 
         val bob = Account(kp2.public)
 
-        // 初始金额为200
-        transactionExecutor.addBalance(alice.address, BigInteger.valueOf(200))
-        transactionExecutor.addBalance(bob.address, BigInteger.valueOf(200))
+        repository.createAccountState(alice.address)
+        repository.createAccountState(bob.address)
 
         // Alice向Bob转账100
-        val trx1 = Transaction(alice.address, bob.address, BigInteger.valueOf(100), DateTime(), kp1.public)
-
+        val trx1 = Transaction(alice.address, bob.address, BigInteger.valueOf(100), DateTime(), kp1.public, ByteArray(0),
+            (repository.getAccountState(alice.address)!!.nonce).toByteArray(), 1.toBigInteger().toByteArray(), 100.toBigInteger().toByteArray(), ByteArray(0))
         // Alice用私钥签名
         trx1.sign(kp1.private)
 
+        val transactionExecutor = TransactionExecutor(repository, config.getGenesisBlock(), trx1, 0L, repository, ProgramInvokeFactoryImpl())
+
+        // 初始金额为500
+        transactionExecutor.addBalance(alice.address, BigInteger.valueOf(500))
+        transactionExecutor.addBalance(bob.address, BigInteger.valueOf(500))
+
         // Alice向Bob转账50
-        val trx2 = Transaction(alice.address, bob.address, BigInteger.valueOf(50), DateTime(), kp1.public)
+        val trx2 = Transaction(alice.address, bob.address, BigInteger.valueOf(50), DateTime(), kp1.public, ByteArray(0),
+            (repository.getAccountState(alice.address)!!.nonce).toByteArray(), 1.toBigInteger().toByteArray(), 100.toBigInteger().toByteArray(), ByteArray(0))
+
 
         // Alice用私钥签名
         trx2.sign(kp1.private)
 
-        // 初始化矿工Charlie账户
-        val kp3 = generateKeyPair() 
-        val charlie = Account(kp3.public)
-
-        // 构造新的区块
-        config.setMinerCoinbase(charlie.address)
         val blockChain = BlockChain(config, ServerRepository.getInstance(config))
         val block = blockChain.generateNewBlock(blockChain.getBestBlock(), listOf(trx1, trx2))
         blockChain.processBlock(block)
@@ -484,6 +494,6 @@ class BlockChainTest {
             println("Pass public key from private key test :$i")
         }
     }
-    */
+
 
 }
